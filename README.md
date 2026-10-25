@@ -2,6 +2,10 @@
 
 Native Android drive-mode parcel map for the Joying head unit.
 
+## Start here
+- [`docs/direction.md`](docs/direction.md): what we're building, the key dilemma, options, and the decisions still open.
+- [`docs/project-history.md`](docs/project-history.md): how the project got here (PC data work, the failed browser map, the native rebuild).
+
 ## Current design
 
 Version 0.5 replaces the Leaflet WebView runtime with a hardware-accelerated
@@ -42,6 +46,8 @@ src/com/fcim/innerloop/ParcelMapView.java motion model and native renderer
 src/com/fcim/innerloop/ParcelData.java   compact parcel loader
 src/com/fcim/innerloop/TileStore.java    asynchronous satellite tile LRU
 tools/build_native_data.py               generated JS → native parcel binary
+docs/direction.md                        key dilemma, options, open decisions
+docs/project-history.md                  project timeline and lessons
 docs/sync-navigation-plan.md             planned PC/Joying sync and routing
 docs/ai-acquisitions-plan.md             planned AI-assisted acquisitions ecosystem
 web/                                     legacy WebView implementation
