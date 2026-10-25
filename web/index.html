@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inner Loop Lots</title>
+<link rel="stylesheet" href="lib/leaflet.css">
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1d2330; --muted:#5f6b7a; --line:#dde2e8; --accent:#2457c5;
+  --A:#1a9850; --B:#3b7dd8; --C:#8a94a3; --X:#d0573f;
+  --f1:#1a9850; --f2a:#66bd63; --f2b:#d9b23c; --f3:#3b7dd8; --f4:#9b59b6;
+  --build:#7b2cbf; --build2:#b8a1d9; --permit:#f28e2b; --campus:#111; --likely:#c2185b; --possible:#f48fb1; --pipe:#00897b; --city:#ffd600; --cl:#d81b60; --dupx:#fb8c00; --parcel:#78909c;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#12151b; --panel:#1b2029; --ink:#e7ebf2; --muted:#9aa5b4; --line:#2c3340; --accent:#7aa2ff; --campus:#fff;
+}}
+:root[data-theme="dark"]{ --bg:#12151b; --panel:#1b2029; --ink:#e7ebf2; --muted:#9aa5b4; --line:#2c3340; --accent:#7aa2ff; --campus:#fff; }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+#app{display:grid;grid-template-columns:360px 1fr;height:100%}
+#side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#side header{padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+h1{font-size:16px;margin:0 0 2px}
+.sub{color:var(--muted);font-size:12px}
+#filters{padding:8px 14px;overflow:auto;border-bottom:1px solid var(--line);max-height:48%}
+fieldset{border:0;margin:0 0 8px;padding:0}
+legend{font-weight:600;font-size:12px;margin-bottom:3px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+label.ck{display:inline-flex;align-items:center;gap:4px;margin:0 10px 3px 0}
+#filters{overflow-x:hidden}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px}
+.row{display:flex;align-items:center;gap:8px;margin:2px 0}
+.row input[type=range]{flex:1}
+.row output{min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+input[type=search],select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+#stats{padding:8px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#stats b{font-variant-numeric:tabular-nums}
+button{padding:5px 10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+#list{overflow:auto;flex:1;min-height:0}
+.item{padding:7px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.item:hover,.item.on{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.item .t{font-weight:600}
+.item .m{color:var(--muted);font-size:12px}
+.pill{display:inline-block;padding:0 6px;border-radius:9px;font-size:11px;font-weight:700;color:#fff;margin-right:4px}
+#map{height:100%}
+#detail{position:absolute;right:10px;top:10px;z-index:1000;width:340px;max-height:calc(100% - 20px);overflow:auto;background:var(--panel);
+  color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18);display:none}
+#detail .hd{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}
+#detail .bd{padding:8px 12px}
+#detail table{width:100%;border-collapse:collapse}
+#detail td{padding:3px 0;vertical-align:top;border-bottom:1px dashed var(--line)}
+#detail td:first-child{color:var(--muted);width:42%;padding-right:8px}
+#detail a{color:var(--accent)}
+.legend{background:var(--panel);color:var(--ink);padding:6px 8px;border-radius:6px;border:1px solid var(--line);line-height:1.6}
+.leaflet-container{background:var(--bg)}
+.cl{font-weight:700;color:var(--campus);text-shadow:0 0 3px var(--panel)}
+#about{font-size:12px;color:var(--muted);padding:8px 14px;border-top:1px solid var(--line)}
+/* drive mode: full-screen map for the car */
+body.drive #app{grid-template-columns:1fr;grid-template-rows:1fr;height:100vh}
+body.drive #side, body.drive .leaflet-control-layers, body.drive #legend, body.drive #detail{display:none !important}
+#hud{position:absolute;left:10px;top:10px;z-index:1000;display:none;gap:8px;align-items:center;flex-wrap:wrap;
+  background:rgba(0,0,0,.7);color:#fff;padding:8px 10px;border-radius:10px;font:600 16px system-ui,sans-serif;max-width:calc(100% - 80px)}
+body.drive #hud{display:flex}
+#hud button{font:600 16px system-ui,sans-serif;padding:10px 14px;background:#222;color:#fff;border:1px solid #555;border-radius:8px}
+#hud button.on{background:#1a73e8;border-color:#1a73e8}
+#compass{position:absolute;right:14px;bottom:28px;z-index:1001;width:82px;height:82px;border:3px solid rgba(255,255,255,.9);
+  border-radius:50%;background:rgba(15,20,28,.82);box-shadow:0 2px 8px #0008;display:none;overflow:hidden;pointer-events:none}
+body.drive #compass{display:block}
+#compass-dial{position:absolute;inset:7px;border:1px solid #ffffff66;border-radius:50%;color:#fff;font:700 13px system-ui,sans-serif;
+  transition:none;will-change:transform}
+#compass-dial span{position:absolute;line-height:14px;text-align:center}
+#compass-dial .n{top:2px;left:50%;width:20px;margin-left:-10px;color:#ff5252;font-size:16px}
+#compass-dial .e{right:3px;top:50%;margin-top:-7px}.compass-s{bottom:2px;left:50%;width:20px;margin-left:-10px}.compass-w{left:3px;top:50%;margin-top:-7px}
+#compass:after{content:'▲';position:absolute;left:50%;top:25px;transform:translateX(-50%);color:#4da3ff;font-size:25px;line-height:25px;text-shadow:0 1px 2px #000}
+.lotlbl{background:transparent;border:0;box-shadow:none;color:#fff;font:800 13px system-ui,sans-serif;padding:0;
+  text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
+.lotlbl.pk{color:#ffd600;font-size:15px}
+.lotlbl.sm{font:700 11px system-ui,sans-serif;color:#eceff1}
+.lotlbl:before{display:none}
+#d-pick{margin:6px 0;font-weight:700}
+body.night .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
+body.night .leaflet-container{background:#1b1f27}
+@media (max-width:820px){
+  #app{grid-template-columns:1fr;grid-template-rows:auto 55vh}
+  #side{border-right:0;border-bottom:1px solid var(--line);max-height:none}
+  #filters{max-height:none}
+  #list{max-height:40vh}
+  #detail{left:10px;right:10px;width:auto;top:auto;bottom:10px;max-height:60%}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="side">
+    <header>
+      <h1>Inner Loop lots, 10,000+ sq ft</h1>
+      <div class="sub" id="srcline">Loading…</div>
+    </header>
+    <div id="filters">
+      <fieldset><legend>Search</legend>
+        <input type="search" id="q" placeholder="Address, owner, subdivision, zip">
+      </fieldset>
+      <fieldset><legend>Area</legend><div id="f-area"></div>
+        <div class="row" style="margin-top:2px"><button id="a-focus" title="Third Ward, OST / South Union, Riverview / Pine Valley, Fifth Ward / Denver Harbor, Near Northside">Focus areas</button><button id="a-all">All</button></div></fieldset>
+      <fieldset><legend>Priority</legend><div id="f-priority"></div></fieldset>
+      <fieldset><legend>Lot form</legend><div id="f-form"></div></fieldset>
+      <fieldset><legend>Condition</legend><div id="f-imp"></div></fieldset>
+      <fieldset><legend>Limits</legend>
+        <div class="row"><span style="width:118px">Max land $/sq ft</span><input type="range" id="psf" min="5" max="200" step="5" value="200"><output id="psf-o"></output></div>
+        <div class="row"><span style="width:118px">Max miles to campus</span><input type="range" id="mi" min="0.5" max="6" step="0.25" value="6"><output id="mi-o"></output></div>
+        <div class="row"><span style="width:118px">Min width (ft)</span><input type="range" id="w" min="0" max="150" step="5" value="0"><output id="w-o"></output></div>
+        <div class="row"><span style="width:118px">Min lot sq ft</span><input type="range" id="sf" min="10000" max="40000" step="500" value="10000"><output id="sf-o"></output></div>
+      </fieldset>
+      <fieldset><legend>Campus</legend><div id="f-campus"></div></fieldset>
+      <fieldset><legend>Owner and flood</legend>
+        <label class="ck"><input type="checkbox" id="noHs">No homestead</label>
+        <label class="ck"><input type="checkbox" id="abs">Absentee</label>
+        <label class="ck"><input type="checkbox" id="oos">Out-of-state owner</label>
+        <label class="ck"><input type="checkbox" id="est">Estate / heirs</label>
+        <label class="ck"><input type="checkbox" id="noOp" checked>Hide co-living operator-owned</label>
+        <label class="ck"><input type="checkbox" id="noSfha" checked>Hide 100-yr floodplain</label>
+        <label class="ck"><input type="checkbox" id="no02">Hide 500-yr (0.2%)</label>
+        <label class="ck"><input type="checkbox" id="dup">Duplexes on block or within 500 ft</label>
+        <label class="ck"><input type="checkbox" id="picksOnly">★ Picked lots only</label>
+      </fieldset>
+      <fieldset><legend>Map</legend>
+        <div class="row"><span style="width:70px">Color by</span>
+          <select id="colorBy"><option value="priority">Priority</option><option value="form">Lot form</option><option value="psf">Land $/sq ft</option><option value="imp">Condition</option></select></div>
+        <label class="ck"><input type="checkbox" id="lyParcels" checked>All parcels, Third Ward + Second Ward (zoom 16+)</label>
+        <label class="ck"><input type="checkbox" id="lyRecent" checked>Recently completed co-living + duplexes (built 2021+)</label>
+        <label class="ck"><input type="checkbox" id="lyBuilds" checked>Co-living builds (HCAD beds = baths)</label>
+        <label class="ck"><input type="checkbox" id="lyHidden" checked>Likely / possible co-living duplexes + no-garage permits</label>
+        <label class="ck"><input type="checkbox" id="lyCity" checked>City "no garage" duplex permits 2025–26</label>
+        <label class="ck"><input type="checkbox" id="lyPermits">Duplex permits 2024–26</label>
+        <label class="ck"><input type="checkbox" id="lyRings">Campus 1 / 2 / 3 mi rings</label>
+      </fieldset>
+    </div>
+    <div id="stats"><span><b id="n">0</b> sites</span><span id="byP" class="sub"></span><span style="flex:1"></span>
+      <button id="reset" title="Reset filters">Reset</button><button id="csv" title="Download the filtered sites as CSV">CSV</button>
+      <button id="picksOut" title="Download your picked lots as picks.js; put it next to index.html on the head unit">★ Picks ↓</button>
+      <button id="drive" title="Full-screen map that follows GPS, for the car">Drive mode</button></div>
+    <div id="list"></div>
+    <div id="about">HCAD 2026 roll and parcels, FEMA NFHL (05/2026), City of Houston permits. Land values are appraisals, not sale prices.
+      Width is approximate (parcel map, not survey). Deed restrictions, historic districts, Chapter 42 and sewer capacity are not checked.</div>
+  </aside>
+  <div style="position:relative;min-height:0">
+    <div id="map"></div>
+    <div id="detail"><div class="hd"><div id="d-title"></div><button id="d-close" aria-label="Close">✕</button></div><div class="bd" id="d-body"></div></div>
+    <div id="hud"><button id="h-exit" aria-label="Exit drive mode">✕</button><button id="h-follow" class="on">Follow</button>
+      <button id="h-orient" title="Switch between north-up and direction-of-travel-up">North ↑</button>
+      <button id="h-night">Night</button><button id="h-sat">Sat</button><span id="h-heading">Heading —</span><span id="h-info">Waiting for GPS…</span></div>
+    <div id="compass" aria-label="Compass"><div id="compass-dial"><span class="n">N</span><span class="e">E</span><span class="compass-s">S</span><span class="compass-w">W</span></div></div>
+  </div>
+</div>
+<script src="lib/leaflet.js"></script>
+<script src="lib/leaflet-rotate-src.js"></script>
+<script src="lib/pmtiles.js"></script>
+<script src="lib/protomaps-leaflet.js"></script>
+<script>window.BASEMAP_B64 = null; window.SATPACK = null;</script>
+<script src="basemap.js"></script>
+<script src="sat/satpack.js"></script>
+<script src="data.js"></script>
+<script>window.PARCELS = {cols:[], rows:[], geoms:[]};</script>
+<script src="parcels.js"></script>
+<script>window.PICKS = [];</script>
+<script src="picks.js"></script>
+<script>
+(function(){
+const D = window.LOTDATA;
+const nativeMode = new URLSearchParams(location.search).has('native');
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const ix = Object.fromEntries(D.cols.map((c,i)=>[c,i]));
+const S = D.rows.map((r,i)=>{ const o={}; D.cols.forEach((c,j)=>o[c]=r[j]); o.i=i; o.geom=D.geoms[i]; o.ll=[D.cents[i][1],D.cents[i][0]];
+  o.search=[o.addresses,o.owner,o.subdivision,o.zip,o.lgl,o.accts].join(' ').toLowerCase(); return o; });
+document.getElementById('srcline').textContent = `${S.filter(s=>s.priority!=='X').length.toLocaleString()} candidate sites inside 610 · built ${D.built}`;
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = v => v==null ? '–' : '$'+Math.round(v).toLocaleString();
+const num = v => v==null ? '–' : Math.round(v).toLocaleString();
+
+// ---- filter UI ------------------------------------------------------------------------------------------
+const PRI = [['A','A · near campus, cheap, duplex context'],['B','B · within 3 mi, ≤ $100'],['C','C · other'],['X','Excluded']];
+const FORMS = [...new Set(S.map(s=>s.lot_form).filter(Boolean))].sort();
+const FORM_LABEL = f => ({'1':'1 · existing ~5k lots, one owner','2a':'2a · one account, 2+ platted lots','2b':'2b · lots + tracts (survey)',
+  '3':'3 · single lot, needs split','4':'4 · irregular pair'})[f.split(' ')[0]] || f;
+const IMPS = [...new Set(S.map(s=>s.improvement).filter(Boolean))].sort();
+const CAMP = ['UH','TSU','UHD','TMC','HCC Central','UST','Rice'];
+function checks(id, items, on){ const el=document.getElementById(id);
+  el.innerHTML = items.map(([v,l,col])=>`<label class="ck"><input type="checkbox" value="${esc(v)}" ${on(v)?'checked':''}>${col?`<span class="sw" style="background:${col}"></span>`:''}${esc(l)}</label>`).join('');
+  el.addEventListener('change', apply); }
+const formColor = f => css('--f'+f.split(' ')[0]) || '#888';
+checks('f-priority', PRI.map(([v,l])=>[v,l,css('--'+v)]), v=>v!=='X');
+checks('f-form', FORMS.map(f=>[f,FORM_LABEL(f),formColor(f)]), ()=>true);
+checks('f-imp', IMPS.map(v=>[v,v]), v=>!['recent build','improvement worth more than land'].includes(v));
+checks('f-campus', CAMP.map(v=>[v,v]), ()=>true);
+const FOCUS = ['Third Ward','OST / South Union (Grand Park, Foster Pl, Southland Pl)','Riverview / Pine Valley','Fifth Ward / Denver Harbor','Near Northside (Fulton / A C Allen / N Main)'];
+const AREAS = [...new Set(S.map(s=>s.area))].sort((a,b)=>(FOCUS.indexOf(a)<0?99:FOCUS.indexOf(a))-(FOCUS.indexOf(b)<0?99:FOCUS.indexOf(b))||a.localeCompare(b));
+checks('f-area', AREAS.map(v=>[v,v]), ()=>true);
+const setAreas = on => { document.querySelectorAll('#f-area input').forEach(i=>i.checked=on(i.value)); apply(); };
+document.getElementById('a-focus').addEventListener('click',()=>setAreas(v=>FOCUS.includes(v)));
+document.getElementById('a-all').addEventListener('click',()=>setAreas(()=>true));
+const vals = id => [...document.querySelectorAll(`#${id} input:checked`)].map(i=>i.value);
+const $ = id => document.getElementById(id);
+const outs = {psf:v=>v>=200?'any':'$'+v, mi:v=>v>=6?'any':v+' mi', w:v=>v<=0?'any':v+' ft', sf:v=>(+v).toLocaleString()};
+for (const k in outs){ const f=()=>{$(k+'-o').textContent=outs[k]($(k).value)}; f(); $(k).addEventListener('input',()=>{f(); debounced();}); }
+['noHs','abs','oos','est','noOp','noSfha','no02','dup','picksOnly'].forEach(id=>$(id).addEventListener('change',apply));
+let qt; $('q').addEventListener('input',()=>{clearTimeout(qt); qt=setTimeout(apply,200);});
+let dt; const debounced = ()=>{clearTimeout(dt); dt=setTimeout(apply,120);};
+
+// ---- map ------------------------------------------------------------------------------------------------
+const map = L.map('map',{preferCanvas:true, zoomControl:true, maxZoom:20, rotate:true, rotateControl:false, touchRotate:false}).setView([29.745,-95.365],13);
+function updateCompass(){
+  const dial = document.getElementById('compass-dial');
+  if (dial) dial.style.transform = `rotate(${map.getBearing ? map.getBearing() : 0}deg)`;
+}
+map.on('rotate', updateCompass); updateCompass();
+// Base maps: offline vector map (basemap.js, Protomaps extract of inside 610), OpenStreetMap online, and satellite:
+// the offline USGS pack in sat/ when present (sat/satpack.js), else Esri online.
+const streets = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20,maxNativeZoom:19,attribution:'© OpenStreetMap contributors'});
+const satOnline = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {maxZoom:20,maxNativeZoom:19,attribution:'Imagery © Esri'});
+const SP = window.SATPACK;
+const satOffline = SP ? L.tileLayer('sat/{z}/{x}/{y}.jpg',{maxZoom:20, maxNativeZoom:SP.maxz, bounds:SP.bounds,
+  attribution:'USGS The National Map: Orthoimagery (USDA NAIP)'}) : null;
+const sat = satOffline || satOnline;
+let vecDay = null, vecNight = null;
+if (window.BASEMAP_B64 && window.protomapsL && window.pmtiles){
+  try {
+    const s = atob(window.BASEMAP_B64), buf = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) buf[i] = s.charCodeAt(i);
+    window.BASEMAP_B64 = null;
+    // in-memory PMTiles source (a page opened from a local file can't fetch() other local files)
+    const pm = new pmtiles.PMTiles({getKey:()=>'houston_610', getBytes: async (o, n)=>({data: buf.buffer.slice(o, o + n)})});
+    const opts = flavor => ({url:pm, flavor, lang:'en', maxDataZoom:15, maxZoom:20, attribution:'© OpenStreetMap contributors · Protomaps'});
+    vecDay = protomapsL.leafletLayer(opts('light')); vecNight = protomapsL.leafletLayer(opts('dark'));
+  } catch (e) { console.warn('offline basemap unavailable', e); vecDay = vecNight = null; }
+}
+const baseLayers = {};
+if (vecDay) baseLayers['Map (offline)'] = vecDay;
+baseLayers['Map (online, OpenStreetMap)'] = streets;
+baseLayers[satOffline ? 'Satellite (offline, USGS)' : 'Satellite (online, Esri)'] = sat;
+if (satOffline) baseLayers['Satellite (online, Esri)'] = satOnline;
+L.control.layers(baseLayers, null, {position:'bottomright'}).addTo(map);
+let baseChoice = vecDay || streets, mapChoice = baseChoice;   // drive mode swaps day / night versions of baseChoice
+let settingBase = false;   // the layers control fires baselayerchange for programmatic adds too: ignore our own
+map.on('baselayerchange', e=>{
+  if (settingBase) return;
+  baseChoice = e.layer; if (e.layer !== sat && e.layer !== satOnline) mapChoice = e.layer; setBase();
+});
+L.polyline(D.ring.map(([x,y])=>[y,x]),{color:css('--X'),weight:2,opacity:.6,dashArray:'6 6',interactive:false}).addTo(map);
+const rings = L.layerGroup();
+D.campuses.forEach(c=>{ const ll=[c.ll[1],c.ll[0]];
+  L.marker(ll,{icon:L.divIcon({className:'cl',html:esc(c.name),iconSize:[80,16],iconAnchor:[-6,8]}),interactive:false}).addTo(map);
+  L.circleMarker(ll,{radius:5,color:css('--campus'),fillColor:css('--campus'),fillOpacity:1,weight:1,interactive:false}).addTo(map);
+  [1,2,3].forEach(m=>L.circle(ll,{radius:m*1609.34,color:css('--campus'),weight:1,opacity:.35,fill:false,dashArray:'3 5',interactive:false}).addTo(rings)); });
+$('lyRings').addEventListener('change',e=>e.target.checked?rings.addTo(map):rings.remove());
+
+const builds = L.layerGroup().addTo(map);
+D.builds.forEach(b=>{ L.circleMarker([b.ll[1],b.ll[0]],{radius:b.conf?6:4,color:'#fff',weight:1,fillColor:b.conf?css('--build'):css('--build2'),fillOpacity:.95})
+  .bindPopup(`<b>${esc(b.addr)}</b><br>${b.beds??'?'} beds / ${b.bld} bldg · built ${b.yr}<br>Lot ${num(b.lot)} sq ft<br>Builder: ${esc(b.builder)||'–'}<br>Owner: ${esc(b.owner)}<br><i>${b.conf?'Co-living (confident)':'Co-living pattern (check)'}</i>`).addTo(builds); });
+$('lyBuilds').addEventListener('change',e=>e.target.checked?builds.addTo(map):builds.remove());
+const hidden = L.layerGroup().addTo(map);
+const HCOL = {'likely co-living':'--likely','possible co-living':'--possible','pipeline: no-garage duplex permit':'--pipe'};
+(D.hidden||[]).forEach(h=>{ L.circleMarker([h.ll[1],h.ll[0]],{radius:h.tier.startsWith('likely')?6:4,color:'#fff',weight:1,fillColor:css(HCOL[h.tier]),fillOpacity:.95})
+  .bindPopup(`<b>${esc(h.addr)}</b><br><i>${esc(h.tier)}</i> · score ${h.score}<br>${h.yr?'Built '+h.yr+' · ':''}${h.heat?num(h.heat)+' sf heated · ':''}HCAD ${h.beds} bd / ${h.baths} ba${h.half?' + '+h.half+' half':''}<br>${h.nogar?'Duplex permit, no garage':''}${h.permit?' ('+esc(h.permit)+')':''}<br>Owner: ${esc(h.owner)}<br>${esc(h.area)}`).addTo(hidden); });
+$('lyHidden').addEventListener('change',e=>e.target.checked?hidden.addTo(map):hidden.remove());
+const city = L.layerGroup().addTo(map);
+(D.city_nogar||[]).forEach(c=>{ L.circleMarker([c.ll[1],c.ll[0]],{radius:Math.min(5+c.n,10),color:'#5d4037',weight:2,dashArray:c.approx?'2 3':null,fillColor:css('--city'),fillOpacity:.9})
+  .bindPopup(`<b>${esc(c.addr)}</b><br>${c.n} "no garage" duplex permit(s), ${esc(c.first)}${c.last!==c.first?' to '+esc(c.last):''}<br><small>${esc(c.txt)}</small>`
+    +`<br>${c.owner?'Owner (HCAD): '+esc(c.owner)+'<br>':''}${esc(c.area)}${c.approx?'<br><i>New address not on the HCAD roll yet: placed at the nearest house number on the street</i>':''}`).addTo(city); });
+$('lyCity').addEventListener('change',e=>e.target.checked?city.addTo(map):city.remove());
+const permits = L.layerGroup();
+D.permits.forEach(p=>{ L.circleMarker([p.ll[1],p.ll[0]],{radius:p.combined?6:4,color:'#fff',weight:1,fillColor:css('--permit'),fillOpacity:.9})
+  .bindPopup(`<b>${esc(p.addr)}</b><br>${p.n} duplex permit(s) from ${esc(p.first)}<br>Site ${num(p.lot)} sq ft${p.combined?' · combined lots':''}<br>Owner: ${esc(p.owner)}`).addTo(permits); });
+$('lyPermits').addEventListener('change',e=>e.target.checked?permits.addTo(map):permits.remove());
+
+const PSF_BANDS = [[20,'#1a9850'],[30,'#91cf60'],[45,'#fee08b'],[60,'#fc8d59'],[100,'#d73027'],[1e9,'#7f0000']];
+const IMP_COL = {'vacant':'#1a9850','teardown candidate':'#3b7dd8','improved, check':'#d9b23c','recent build':'#8a94a3','improvement worth more than land':'#d0573f'};
+function color(s){ const m=$('colorBy').value;
+  if (m==='form') return formColor(s.lot_form||'4');
+  if (m==='psf') return (PSF_BANDS.find(([b])=>(s.land_psf??999)<=b)||[0,'#888'])[1];
+  if (m==='imp') return IMP_COL[s.improvement]||'#888';
+  return css('--'+s.priority); }
+$('colorBy').addEventListener('change',()=>{draw(); legend();});
+
+// picked lots (★), keyed by the site's HCAD accounts: picks.js (copied to the head unit) plus this browser's own picks
+const PICK_KEY = 'innerloop_picks';
+const picks = new Set(window.PICKS || []);
+try { JSON.parse(localStorage.getItem(PICK_KEY) || '[]').forEach(k=>picks.add(k)); } catch(e) {}
+const savePicks = ()=>{ try { localStorage.setItem(PICK_KEY, JSON.stringify([...picks])); } catch(e) {} };
+const isPick = s => picks.has(s.accts);
+let drive = false, lastDrawn = null;
+
+// every parcel in Third Ward + Second Ward (parcels.js) and recently completed duplex / co-living projects (data.js)
+const PC = window.PARCELS, pix = Object.fromEntries(PC.cols.map((c,i)=>[c,i]));
+const PARC = PC.rows.map((r,i)=>{ const o={}; PC.cols.forEach((c,j)=>o[c]=r[j]); o.geom=PC.geoms[i];
+  const p0 = o.geom[0][0]; o.ll=[p0[1], p0[0]]; return o; });
+const RECENT = D.recent || [];
+const sizeLabel = sf => !sf ? '' : sf >= 43560 ? `${(sf/43560).toFixed(1)} ac` : sf >= 10000 ? `${Math.round(sf/1000)}k` : `${(sf/1000).toFixed(1)}k`;
+const parcelHtml = p => `<b>${esc(p.addr)}</b><br>${num(p.sf)} sq ft · class ${esc(p.cls)}${p.yr?' · built '+p.yr:''}${p.heat?' · '+num(p.heat)+' sf heated':''}`
+  + `<br>HCAD land ${money(p.lv)}${p.sf?' ($'+Math.round(p.lv/p.sf)+'/sf)':''} · building ${money(p.bv)} · total ${money(p.mkt)}`
+  + `<br>Owner: ${esc(p.owner)}${p.since?' (since '+esc(p.since)+')':''}<br>${esc(p.area)} · ${esc(p.acct)}`;
+const recentColor = r => r.kind==='duplex' ? css('--dupx') : r.kind.startsWith('possible') ? css('--possible') : css('--cl');
+const recentHtml = r => `<b>${esc(r.addr)}</b><br><i>${esc(r.kind)}</i> · built ${r.yr}`
+  + `<br>${r.heat?num(r.heat)+' sf heated · ':''}HCAD ${r.beds} bd / ${r.baths} ba${r.half?' + '+r.half+' half':''}`
+  + `${r.nogar?'<br>Duplex permit, no garage':r.withgar?'<br>Duplex permit with garage':''}<br>Lot ${num(r.sf)} sq ft`
+  + `<br>Owner: ${esc(r.owner)} (${esc(r.otype)}${r.mstate&&r.mstate!=='TX'?', '+esc(r.mstate):''})<br>${esc(r.nbhd)}`;
+
+const parcelLayer = L.layerGroup().addTo(map), recentLayer = L.layerGroup().addTo(map);
+const polyLayer = L.layerGroup(), dotLayer = L.layerGroup();
+let shown = [], selected = null;
+const POLY_ZOOM = 15;
+function drawContext(z, b){   // drawn first, so the target lots sit on top
+  parcelLayer.clearLayers(); recentLayer.clearLayers();
+  // The 20k context-parcel layer is retained, but only appears at z18+ while driving.
+  // Rendering it at z16/17 made low-power head units rebuild hundreds of polygons per camera update.
+  if ($('lyParcels').checked && z >= (drive ? 18 : 16)){
+    const lc = drive ? (night ? '#b0bec5' : '#546e7a') : css('--parcel');
+    for (const p of PARC){
+      if (!b.contains(p.ll)) continue;
+      const l = L.polygon(p.geom.map(r=>r.map(([x,y])=>[y,x])),{color:lc, weight:drive?1.5:1, fillOpacity:drive?0:.02, interactive:!drive});
+      if (drive && z >= 18) l.bindTooltip(sizeLabel(p.sf), {permanent:true, direction:'center', className:'lotlbl sm', interactive:false});
+      if (!drive) l.bindPopup(()=>parcelHtml(p));
+      parcelLayer.addLayer(l);
+    }
+  }
+  if ($('lyRecent').checked){
+    for (const r of RECENT){
+      const c = recentColor(r);
+      if (z >= POLY_ZOOM && !b.contains([r.ll[1], r.ll[0]])) continue;
+      const l = z >= POLY_ZOOM
+        ? L.polygon(r.g.map(q=>q.map(([x,y])=>[y,x])),{color:c, weight:drive?3:2, fillColor:c, fillOpacity:.35, interactive:!drive})
+        : L.circleMarker([r.ll[1], r.ll[0]],{radius:4, color:'#fff', weight:1, fillColor:c, fillOpacity:.95, interactive:!drive});
+      if (!drive) l.bindPopup(recentHtml(r));
+      recentLayer.addLayer(l);
+    }
+  }
+}
+['lyParcels','lyRecent'].forEach(id=>$(id).addEventListener('change',()=>draw()));
+function draw(){
+  polyLayer.clearLayers(); dotLayer.clearLayers();
+  const z = map.getZoom(), b = map.getBounds().pad(0.3);
+  drawContext(z, b);
+  const usePoly = z >= POLY_ZOOM;
+  const order = {X:0, C:1, B:2, A:3};   // A drawn last, on top; picks above everything
+  // drive mode shows every 10k+ lot (excluded ones faint) regardless of filters; elsewhere the filtered set plus picks
+  const seen = new Set(shown);
+  const pool = drive ? (usePoly ? S : S.filter(isPick)) : shown.concat(S.filter(s=>isPick(s) && !seen.has(s)));
+  const label = drive && z >= 17;
+  for (const s of [...pool].sort((a,b)=>(isPick(a)-isPick(b)) || order[a.priority]-order[b.priority])){
+    if (usePoly && !b.contains(s.ll)) continue;
+    const pk = isPick(s), sel = selected===s;
+    const c = drive ? (s.priority==='X' ? '#9e9e9e' : css('--'+s.priority)) : color(s);
+    let lyr;
+    if (usePoly){
+      lyr = L.polygon(s.geom.map(r=>r.map(([x,y])=>[y,x])), pk
+        ? {color:'#ffd600', weight:drive?6:4, fillColor:'#ffd600', fillOpacity:.45}
+        : {color:sel?'#000':c, weight:sel?3:(drive?2.5:1.2), dashArray:s.priority==='X'?'4 4':null,
+           fillColor:c, fillOpacity:drive?(s.priority==='X'?.08:.22):(sel?.55:.35)});
+      if (label) lyr.bindTooltip(`${pk?'★ ':''}${sizeLabel(s.land_ar)}`,
+        {permanent:true, direction:'center', className:'lotlbl'+(pk?' pk':''), interactive:false});
+    } else {
+      lyr = pk ? L.circleMarker(s.ll,{radius:7,color:'#000',weight:2,fillColor:'#ffd600',fillOpacity:1})
+               : L.circleMarker(s.ll,{radius:sel?7:(z>=14?4:3),stroke:sel,color:'#000',weight:2,fillColor:c,fillOpacity:.85});
+    }
+    if (!drive) lyr.on('click',()=>select(s,false));   // no tap targets while driving
+    (usePoly?polyLayer:dotLayer).addLayer(lyr);
+  }
+  lastDrawn = {c:map.getCenter(), z};
+}
+polyLayer.addTo(map); dotLayer.addTo(map);
+map.on('moveend zoomend',()=>{
+  if (drive){   // GPS follow moves the map every second or so: redraw only after ~80 m or a zoom change
+    if (!lastDrawn || lastDrawn.z!==map.getZoom() || map.distance(lastDrawn.c, map.getCenter()) > 80) draw();
+    return;
+  }
+  if (map.getZoom()>=POLY_ZOOM || dotLayer.getLayers().length===0) draw(); else if (map.getZoom()<POLY_ZOOM && polyLayer.getLayers().length) draw(); });
+
+const legendCtl = L.control({position:'bottomleft'});
+legendCtl.onAdd = ()=>{ const d=L.DomUtil.create('div','legend'); d.id='legend'; return d; };
+legendCtl.addTo(map);
+function legend(){ const m=$('colorBy').value; let items;
+  if (m==='form') items = FORMS.map(f=>[formColor(f),FORM_LABEL(f)]);
+  else if (m==='psf') items = PSF_BANDS.map(([b,c],i)=>[c, b>=1e9?'> $100':`≤ $${b}`]);
+  else if (m==='imp') items = Object.entries(IMP_COL).map(([k,c])=>[c,k]);
+  else items = PRI.map(([v,l])=>[css('--'+v),l]);
+  items.push([css('--cl'),'Recent co-living, built 2021+'],[css('--dupx'),'Recent duplex, built 2021+'],
+             [css('--parcel'),'All parcels: Third + Second Ward (zoom 16+)'],[css('--build'),'Co-living build (beds = baths)'],[css('--likely'),'Likely co-living duplex'],[css('--possible'),'Possible co-living duplex'],
+             [css('--pipe'),'No-garage duplex permit, not built'],[css('--city'),'City "no garage" duplex permit 2025–26'],[css('--permit'),'Duplex permit 2024–26']);
+  $('legend').innerHTML = items.map(([c,l])=>`<div><span class="sw" style="background:${c}"></span> ${esc(l)}</div>`).join(''); }
+
+// ---- filtering ------------------------------------------------------------------------------------------
+function apply(){
+  const P=new Set(vals('f-priority')), F=new Set(vals('f-form')), I=new Set(vals('f-imp')), C=new Set(vals('f-campus')), A=new Set(vals('f-area'));
+  const psf=+$('psf').value, mi=+$('mi').value, w=+$('w').value, sf=+$('sf').value, q=$('q').value.trim().toLowerCase();
+  const o={noHs:$('noHs').checked,abs:$('abs').checked,oos:$('oos').checked,est:$('est').checked,noOp:$('noOp').checked,
+           noSfha:$('noSfha').checked,no02:$('no02').checked,dup:$('dup').checked};
+  shown = S.filter(s=> A.has(s.area) && P.has(s.priority) && F.has(s.lot_form) && I.has(s.improvement) && C.has(s.nearest_college)
+    && (psf>=200 || (s.land_psf??1e9)<=psf) && (mi>=6 || (s.college_mi??99)<=mi) && (w<=0 || (s.lot_width_ft??0)>=w) && (s.land_ar??0)>=sf
+    && (!o.noHs || !s.homestead) && (!o.abs || s.absentee) && (!o.oos || s.out_of_state) && (!o.est || s.owner_type==='estate')
+    && (!o.noOp || !s.known_coliving_operator) && (!o.noSfha || !s.sfha) && (!o.no02 || !s.zone_02)
+    && (!o.dup || (s.blk_duplex_class+s.blk_duplex_permits+s.duplex_500ft)>0) && (!q || s.search.includes(q))
+    && (!$('picksOnly').checked || isPick(s)));
+  $('n').textContent = shown.length.toLocaleString();
+  const cnt = {}; shown.forEach(s=>cnt[s.priority]=(cnt[s.priority]||0)+1);
+  $('byP').textContent = ['A','B','C','X'].filter(k=>cnt[k]).map(k=>`${k} ${cnt[k].toLocaleString()}`).join(' · ');
+  list(); draw();
+}
+const LIMIT = 300;
+function list(){
+  const el=$('list'); const rows=shown.slice(0,LIMIT);
+  el.innerHTML = rows.map(s=>`<div class="item${selected===s?' on':''}" data-i="${s.i}">
+    <div class="t"><span class="pill" style="background:${css('--'+s.priority)}">${s.priority}</span>${isPick(s)?'★ ':''}#${s.rank??'–'} · ${esc(short(s.addresses))}</div>
+    <div class="m">${num(s.land_ar)} sq ft · ~${num(s.lot_width_ft)} ft wide · ${esc(s.improvement)} · ${s.land_psf!=null?'$'+s.land_psf+'/sf':''} · ${esc(s.nearest_college)} ${s.college_mi} mi</div>
+    <div class="m">${esc(s.area)} · ${esc(FORM_LABEL(s.lot_form||''))}${s.arrangement?' · '+esc(s.arrangement):''}</div></div>`).join('')
+    + (shown.length>LIMIT?`<div class="item m">Showing the first ${LIMIT} by rank. Narrow the filters or use CSV for all ${shown.length.toLocaleString()}.</div>`:'');
+}
+const short = a => { const p=String(a||'').split(';').map(x=>x.trim()); return p.length>2 ? `${p[0]}; ${p[1]} +${p.length-2}` : p.join('; '); };
+$('list').addEventListener('click',e=>{ const it=e.target.closest('.item[data-i]'); if(it) select(S[+it.dataset.i],true); });
+
+function select(s, fly){
+  selected = s;
+  if (fly){   // keep the lot left of the details panel on wide screens
+    const z = Math.max(map.getZoom(), 17), wide = window.innerWidth > 820;
+    const off = wide ? Math.min(360, map.getSize().x * 0.45) / 2 : 0;
+    map.flyTo(map.unproject(map.project(s.ll, z).add([off, 0]), z), z, {duration:.6});
+  }
+  $('d-title').innerHTML = `<span class="pill" style="background:${css('--'+s.priority)}">${s.priority}</span><b>#${s.rank??'–'}</b> ${esc(short(s.addresses))}`;
+  const gm = `https://www.google.com/maps/search/?api=1&query=${s.ll[0]},${s.ll[1]}`;
+  const sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${s.ll[0]},${s.ll[1]}`;
+  const R = [
+    ['Addresses', esc(s.addresses)], ['Area', esc(s.area)], ['Zip', esc(s.zip)],
+    ['Lot form', esc(FORM_LABEL(s.lot_form||''))+(s.arrangement?` · ${esc(s.arrangement)}`:'')],
+    ['Site', `${esc(s.site_type)} · ${s.n_parcels} parcel(s)`], ['Lot sq ft', num(s.land_ar)+(s.n_parcels>1?` (${esc(s.parcel_sizes)})`:'')],
+    ['Approx. width × depth', `${num(s.lot_width_ft)} × ${num(s.lot_depth_ft)} ft`+(s.n_parcels>1?` · parcel widths ${esc(s.parcel_widths)}`:'')],
+    ['Condition', esc(s.improvement)+(s.yr_built_min?` · built ${s.yr_built_min}${s.yr_built_max&&s.yr_built_max!==s.yr_built_min?'–'+s.yr_built_max:''}`:'')+(s.heat?` · ${num(s.heat)} sf`:'')],
+    ['Class', esc(s.state_classes)],
+    ['HCAD land', `${money(s.land_val)} · $${s.land_psf??'–'}/sf`], ['HCAD building / total', `${money(s.bld_val)} / ${money(s.mkt)}`],
+    ['Owner', esc(s.owner)+(s.known_coliving_operator?' <b>(co-living operator)</b>':'')],
+    ['Owner type', `${esc(s.owner_type)}${s.homestead?' · homestead':''}${s.absentee?' · absentee':''}${s.out_of_state?' · out of state':''}`],
+    ['Mailing', `${esc(s.mail_city)} ${esc(s.mail_state)}`], ['Years held', s.years_held??'–'],
+    ['Flood', `${esc(s.fld_zone)}${s.sfha?' · 100-yr floodplain':''}${s.zone_02?' · 500-yr':''}`],
+    ['Nearest campus', `${esc(s.nearest_college)} · ${s.college_mi} mi (UH/TSU ${s.uh_tsu_mi} mi)`],
+    ['Duplexes', `block ${s.blk_duplex_class} · permits on block ${s.blk_duplex_permits} · within 500 ft ${s.duplex_500ft}`],
+    ['Nearby activity', `new-home permits 500 ft ${s.new_res_permits_500ft} · co-living ½ mi ${s.coliving_half_mile}`],
+    ['Score', s.score], ['Subdivision', esc(s.subdivision)], ['Legal', esc(s.lgl)], ['HCAD accounts', esc(s.accts)],
+  ];
+  if (s.exclude_reason) R.unshift(['Excluded', `<b>${esc(s.exclude_reason)}</b>`]);
+  $('d-body').innerHTML = `<button id="d-pick">${isPick(s)?'★ Picked (click to remove)':'☆ Pick this lot'}</button>
+    <table>${R.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table>
+    <p><a href="${gm}" target="_blank" rel="noopener">Google Maps</a> · <a href="${sv}" target="_blank" rel="noopener">Street View</a></p>`;
+  $('d-pick').onclick = ()=>{ isPick(s) ? picks.delete(s.accts) : picks.add(s.accts); savePicks(); pickCount(); select(s,false); };
+  $('detail').style.display='block';
+  draw(); list();
+}
+$('d-close').addEventListener('click',()=>{ $('detail').style.display='none'; selected=null; draw(); list(); });
+
+$('reset').addEventListener('click',()=>{ location.reload(); });
+$('csv').addEventListener('click',()=>{
+  const cols = D.cols.concat(['lat','lng']);
+  const q = v => v==null ? '' : /[",\n]/.test(String(v)) ? '"'+String(v).replace(/"/g,'""')+'"' : String(v);
+  const lines = [cols.join(',')].concat(shown.map(s=>cols.map(c=>q(c==='lat'?s.ll[0]:c==='lng'?s.ll[1]:s[c])).join(',')));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
+  a.download = `inner_loop_lots_${shown.length}.csv`; a.click(); URL.revokeObjectURL(a.href);
+});
+
+// ---- picks export (for the head unit) ----------------------------------------------------------------------
+function pickCount(){ $('picksOut').textContent = `★ Picks (${picks.size}) ↓`; }
+$('picksOut').addEventListener('click',()=>{
+  const body = `// Picked lots for the Inner Loop map: each entry is a site's HCAD accounts. Put this file next to index.html.\nwindow.PICKS = ${JSON.stringify([...picks], null, 1)};\n`;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([body],{type:'text/javascript'}));
+  a.download = 'picks.js'; a.click(); URL.revokeObjectURL(a.href);
+});
+
+// ---- drive mode: full-screen map following GPS ---------------------------------------------------------------
+let follow = true, watchId = null, me = null, meAcc = null, meHeading = null, wake = null, night = false;
+let pov = false, heading = null, lastFix = null, haveFix = false, lastGpsHeadingAt = 0;
+let lastBearingAt = 0, lastCameraAt = 0;
+
+const normHeading = n => (n % 360 + 360) % 360;
+const angleDelta = (a,b) => ((b - a + 540) % 360) - 180;
+function destination(ll, bearing, metres){
+  const r = 6371000, d = metres/r, b = bearing*Math.PI/180;
+  const la1 = ll[0]*Math.PI/180, lo1 = ll[1]*Math.PI/180;
+  const la2 = Math.asin(Math.sin(la1)*Math.cos(d) + Math.cos(la1)*Math.sin(d)*Math.cos(b));
+  const lo2 = lo1 + Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(la1), Math.cos(d)-Math.sin(la1)*Math.sin(la2));
+  return [la2*180/Math.PI, lo2*180/Math.PI];
+}
+function drawHeading(ll, acc){
+  if (heading == null) return;
+  const len = Math.max(28, Math.min(100, (acc || 20)*1.5));
+  const shape = [ll, destination(ll, heading-19, len), destination(ll, heading, len*1.25), destination(ll, heading+19, len)];
+  if (!meHeading) meHeading = L.polygon(shape,{color:'#1a73e8',weight:2,fillColor:'#1a73e8',fillOpacity:.28,interactive:false}).addTo(map);
+  else meHeading.setLatLngs(shape);
+  if (meHeading.bringToBack) meHeading.bringToBack();
+}
+function setHeading(value, source){
+  if (!Number.isFinite(value)) return;
+  value = normHeading(value);
+  // GPS course is already filtered by the GNSS receiver. Follow it closely; heavy averaging made turns lag.
+  const gain = source === 'GPS' ? (nativeMode ? 1 : .82) : .35;
+  heading = heading == null ? value : normHeading(heading + angleDelta(heading, value)*gain);
+  $('h-heading').textContent = `${source === 'GPS' ? 'Course' : 'Heading'} ${Math.round(heading)}°`;
+  if (lastFix) drawHeading(lastFix.ll, lastFix.acc);
+  const now = Date.now(), current = map.getBearing ? map.getBearing() : 0;
+  // Leaflet.Rotate's positive bearing rotates map content clockwise. Heading-up therefore needs -course.
+  const desired = normHeading(-heading);
+  if (pov && map.setBearing && now-lastBearingAt >= 250 && Math.abs(angleDelta(current, desired)) >= 1) {
+    lastBearingAt = now;
+    map.setBearing(desired, {animate:true, duration:nativeMode ? .72 : .35, easeLinearity:1});
+  }
+}
+function deviceHeading(e){
+  // Prefer GPS course while moving; a compass fills in direction while stopped.
+  if (Date.now() - lastGpsHeadingAt < 5000) return;
+  let h = Number.isFinite(e.webkitCompassHeading) ? e.webkitCompassHeading : null;
+  if (h == null && e.absolute && Number.isFinite(e.alpha)) {
+    const screenAngle = screen.orientation?.angle || window.orientation || 0;
+    h = 360 - e.alpha + screenAngle;
+  }
+  if (h != null) setHeading(h, 'compass');
+}
+if (!nativeMode) {
+  window.addEventListener('deviceorientationabsolute', deviceHeading, true);
+  window.addEventListener('deviceorientation', deviceHeading, true);
+}
+async function enableOrientation(){
+  try { if (DeviceOrientationEvent?.requestPermission) await DeviceOrientationEvent.requestPermission(); } catch(e) {}
+}
+// one base layer at a time; at night in drive mode the offline map uses its dark style, OpenStreetMap is inverted with CSS
+function setBase(){
+  settingBase = true;
+  [streets, satOnline, satOffline, vecDay, vecNight].filter(Boolean).forEach(l=>{ if (map.hasLayer(l)) map.removeLayer(l); });
+  const layer = (baseChoice === vecDay && drive && night) ? vecNight : baseChoice;
+  try { layer.addTo(map); if (layer.bringToBack) layer.bringToBack(); } finally { settingBase = false; }
+  document.body.classList.toggle('night', drive && night && layer === streets);
+  $('h-sat').classList.toggle('on', layer === sat || layer === satOnline);
+}
+$('h-sat').addEventListener('click', ()=>{ baseChoice = (baseChoice === sat || baseChoice === satOnline) ? mapChoice : sat; setBase(); });
+function nearestPick(ll){
+  let best = null;
+  for (const s of S) if (isPick(s)) { const d = map.distance(ll, s.ll); if (!best || d < best.d) best = {d, s}; }
+  return best;
+}
+function onPos(p){
+  const ll = [p.coords.latitude, p.coords.longitude], acc = p.coords.accuracy || 20;
+  haveFix = true;
+  let course = Number.isFinite(p.coords.heading) ? p.coords.heading : null;
+  if (course == null && lastFix) {
+    const moved = map.distance(lastFix.ll, ll);
+    if (moved >= Math.max(3, acc*.25)) {
+      const a = lastFix.ll[0]*Math.PI/180, b = ll[0]*Math.PI/180, dl = (ll[1]-lastFix.ll[1])*Math.PI/180;
+      course = normHeading(Math.atan2(Math.sin(dl)*Math.cos(b), Math.cos(a)*Math.sin(b)-Math.sin(a)*Math.cos(b)*Math.cos(dl))*180/Math.PI);
+    }
+  }
+  lastFix = {ll, acc, at:Date.now()};
+  if (course != null) { lastGpsHeadingAt = Date.now(); setHeading(course, 'GPS'); }
+  if (!me){
+    meAcc = L.circle(ll,{radius:acc,color:'#1a73e8',weight:1,fillOpacity:.1,interactive:false}).addTo(map);
+    me = L.circleMarker(ll,{radius:9,color:'#fff',weight:3,fillColor:'#1a73e8',fillOpacity:1,interactive:false}).addTo(map);
+  }
+  me.setLatLng(ll); meAcc.setLatLng(ll).setRadius(acc); drawHeading(ll, acc);
+  if (drive && follow) {
+    const now = Date.now(), off = map.distance(map.getCenter(), ll);
+    // Ignore stationary GPS wander and cap camera work at 1 Hz. Large jumps snap; normal travel glides.
+    if (now-lastCameraAt >= 900 && off > Math.max(4, acc*.35)) {
+      lastCameraAt = now;
+      if (off > 150) map.setView(ll, map.getZoom(), {animate:false});
+      else map.panTo(ll, {animate:true, duration:.75, easeLinearity:1, noMoveStart:true});
+    }
+  }
+  const n = nearestPick(ll);
+  $('h-info').textContent = n ? `Nearest ★ ${(n.d/1609.34).toFixed(1)} mi · ${short(n.s.addresses)}` : `GPS ok · no picks loaded`;
+}
+async function keepAwake(){ try { wake = await navigator.wakeLock?.request('screen'); } catch(e) {} }
+function enterDrive(){
+  drive = true; document.body.classList.add('drive'); selected = null;
+  const h = new Date().getHours(); night = h >= 19 || h < 7; $('h-night').classList.toggle('on', night);
+  setBase(); map.invalidateSize(); map.zoomControl.setPosition('topright');
+  const z0 = +new URLSearchParams(location.search).get('z') || 16;   // ?z=17 starts closer in (lot-size labels show from 17)
+  if (map.getZoom() < z0) map.setZoom(z0, {animate:false});
+  if (!nativeMode && 'geolocation' in navigator && watchId === null)
+    watchId = navigator.geolocation.watchPosition(onPos, e=>{ if (!haveFix || e.code !== e.TIMEOUT) $('h-info').textContent = 'GPS: ' + e.message; },
+      {enableHighAccuracy:true, maximumAge:2000, timeout:20000});
+  keepAwake(); lastDrawn = null; draw();
+}
+function exitDrive(){
+  drive = false; document.body.classList.remove('drive'); setBase(); map.invalidateSize(); map.zoomControl.setPosition('topleft');
+  try { wake && wake.release(); } catch(e) {} wake = null; lastDrawn = null; draw();
+}
+document.addEventListener('visibilitychange', ()=>{ if (drive && document.visibilityState === 'visible') keepAwake(); });
+$('drive').addEventListener('click', enterDrive);
+$('h-exit').addEventListener('click', exitDrive);
+$('h-follow').addEventListener('click', ()=>{ follow = !follow; $('h-follow').classList.toggle('on', follow); if (follow && me) map.setView(me.getLatLng()); });
+$('h-orient').addEventListener('click', async ()=>{
+  await enableOrientation(); pov = !pov;
+  $('h-orient').textContent = pov ? 'POV ↑' : 'North ↑'; $('h-orient').classList.toggle('on', pov);
+  if (map.setBearing) {
+    const desired = pov && heading != null ? normHeading(-heading) : 0;
+    map.setBearing(desired, {animate:true, duration:.45, easeLinearity:1});
+  }
+});
+$('h-night').addEventListener('click', ()=>{ night = !night; $('h-night').classList.toggle('on', night); setBase(); });
+map.on('dragstart', ()=>{ if (drive){ follow = false; $('h-follow').classList.remove('on'); } });
+
+// Called by the Android APK's native GPS bridge. This bypasses browser geolocation/fused-provider stalls.
+window.fcimNativePosition = coords => onPos({coords});
+
+setBase(); legend(); pickCount(); apply();
+const params = new URLSearchParams(location.search);
+if (params.has('drive')) enterDrive();
+if (params.get('sim')){   // testing without GPS: ?sim=lat,lng
+  const [la, lo] = params.get('sim').split(',').map(Number);
+  setTimeout(()=>onPos({coords:{latitude:la, longitude:lo, accuracy:15}}), 300);
+}
+})();
+</script>
+</body>
+</html>

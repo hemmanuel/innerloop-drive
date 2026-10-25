@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#142437" android:pathData="M0,0H108V108H0Z"/>
+    <!-- parcel/map lines -->
+    <path android:fillColor="#27465A" android:strokeColor="#55C58A" android:strokeWidth="2"
+        android:pathData="M8,19L39,11L48,37L17,45ZM67,10L99,23L89,48L58,35ZM10,70L39,58L51,91L20,101ZM70,65L101,57L105,91L76,99Z"/>
+    <!-- compass ring -->
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FFFFFF" android:strokeWidth="4"
+        android:pathData="M54,17C74.4,17 91,33.6 91,54C91,74.4 74.4,91 54,91C33.6,91 17,74.4 17,54C17,33.6 33.6,17 54,17Z"/>
+    <!-- north needle and vehicle/course arrow -->
+    <path android:fillColor="#FF5252" android:pathData="M54,21L64,51L54,46L44,51Z"/>
+    <path android:fillColor="#4DA3FF" android:pathData="M54,87L42,55L54,61L66,55Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M50,8H55L61,18H56L53,13L53,18H50Z"/>
+</vector>
