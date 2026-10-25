@@ -2,6 +2,10 @@
 
 Status: planning only; not yet implemented.
 
+Acquisition criteria and the two-duplex development model are maintained in
+[`buyer-mandate.md`](buyer-mandate.md). Sync must support both individual parcels
+and contiguous multi-parcel sites across the entire inside-610 area.
+
 ## Goals
 
 1. Tap a parcel in Inner Loop Drive and save it.
@@ -32,6 +36,12 @@ restricted by row-level security.
 Saved records must use a stable parcel identifier, preferably the HCAD account
 ID or the canonical combined account key already present in the generated data.
 Addresses are display fields, not identifiers.
+
+For an assembly, retain every constituent HCAD account alongside the canonical
+combined key; do not replace parcel records with an address or aggregate area.
+Keep tax accounts, verified legal lots, and the proposed two-parcel layout
+separate. Existing adjoining lots may support the project without the same
+replat work as a single legal lot, subject to survey and title verification.
 
 The native `parcels.bin` format currently omits account IDs. Before implementing
 selection, add the stable ID for both candidate and context parcels.

@@ -3,8 +3,23 @@
 Native Android drive-mode parcel map for the Joying head unit.
 
 ## Start here
+- [`docs/buyer-mandate.md`](docs/buyer-mandate.md): current buyer criteria, exact duplex model, sourcing context, and unresolved assumptions (clarified 2026-10-25).
 - [`docs/direction.md`](docs/direction.md): what we're building, the key dilemma, options, and the decisions still open.
 - [`docs/project-history.md`](docs/project-history.md): how the project got here (PC data work, the failed browser map, the native rebuild).
+
+## Acquisition context
+
+The primary target is at least 10,000 contiguous sq ft with suitable dimensions
+inside Loop 610 and within 0.5 mile of a bus or METRORail stop. The standard project
+creates two 5,000-sq-ft parcels, each with a duplex whose two sides are each 5 bed /
+5 bath: four dwelling units and 20 bedrooms / 20 bathrooms total for PadSplit use.
+The buyers consider sites with improvements and may pay up to $20 per land sq ft
+when the project checks out. A roughly 5,000-sq-ft site is an exceptional-deal lane.
+
+All inside-Loop neighborhoods are in scope. Older ward priorities, the uniform
+5,000-15,000 range, and the Zone-X-only assumption must be read with the current
+mandate's supersession and confirmation notes. The code and generated datasets
+have not yet been reconciled to this clarification.
 
 ## Current design
 
@@ -46,6 +61,8 @@ src/com/fcim/innerloop/ParcelMapView.java motion model and native renderer
 src/com/fcim/innerloop/ParcelData.java   compact parcel loader
 src/com/fcim/innerloop/TileStore.java    asynchronous satellite tile LRU
 tools/build_native_data.py               generated JS → native parcel binary
+AGENTS.md                               context and continuity for project work
+docs/buyer-mandate.md                    current buyer mandate and sourcing context
 docs/direction.md                        key dilemma, options, open decisions
 docs/project-history.md                  project timeline and lessons
 docs/sync-navigation-plan.md             planned PC/Joying sync and routing
