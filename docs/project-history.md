@@ -7,6 +7,10 @@ How Inner Loop Drive came to exist, in order. Two machines and two agents have w
 
 Dates are 2026.
 
+This is a chronological record. The current acquisition requirements are in
+[`buyer-mandate.md`](buyer-mandate.md); the earlier screening choices below do not
+override the user's later clarification.
+
 ## 1. Program study and playbook (Oct 8–9, PC)
 - Built a private knowledge base from the wholesaling program's video library (637 hours), served to Claude only through an
   anonymizing gateway (`kb-private`).
@@ -83,7 +87,7 @@ Dates are 2026.
 - Plans written:
   - `sync-navigation-plan.md`: Supabase sync, a desktop viewer, routing.
   - `ai-acquisitions-plan.md`: buy-box engine, CRM boundaries, AI roles.
-- **Buy box locked:**
+- **Earlier buy box (subsequently clarified; see section 8):**
   - 5,000–15,000 sq ft;
   - vacant or acceptable teardown;
   - FEMA Zone X;
@@ -97,6 +101,32 @@ Dates are 2026.
   carries no stable parcel IDs in the native format, and picks are baked in at build time.
 - **No connection to the CRM, outreach or lists yet.**
 - **GitHub:** connected on the PC (Oct 25), so both agents can work through this repository.
+
+## 8. Buyer mandate clarified (Oct 25, PC conversation)
+
+- The user specified the actual prototype: a standard 10,000-sq-ft contiguous
+  site becomes two 5,000-sq-ft parcels, each with a duplex; each duplex side is
+  5 bed / 5 bath. Total: four units, 20 bedrooms, and 20 bathrooms for PadSplit use.
+- Buyers consider qualifying sites anywhere inside 610 within 0.5 mile of a bus
+  or METRORail stop. Third, Second, Fifth Ward and other neighborhoods are in scope
+  without a buyer neighborhood preference. The buyers may sell one duplex and
+  retain the other.
+- The conditional ceiling is $20 per land sq ft, or $200,000 on a qualifying
+  10,000-sq-ft site. Existing improvements are acceptable if the project works;
+  roughly 5,000-sq-ft sites are an exceptional-deal lane.
+- The earlier uniform 5,000-15,000 range and ward priorities are superseded.
+  Zone X remains an earlier screening assumption requiring buyer confirmation,
+  not a newly verified requirement or clearance for other flood zones.
+- The 6019 England St investigation highlighted an apparent per-lot price versus
+  total-project-area mismatch. The user stopped that property's research after
+  the initial explanation; no full restriction, title, or feasibility review was
+  completed. Preserve the price-basis check as a sourcing lesson.
+- Reviewing this repository established that the existing inside-610 pipeline
+  and co-living research should be reused and audited. The older six-neighborhood
+  distressed-property inventory in the PC workspace is supplemental.
+- Added the current mandate and linked it from the project entry points. The
+  native binary still omits account IDs, picks remain baked in, and sync/CRM/list
+  workflows remain planned. Renderer, CRM, backend, and CI choices remain open.
 
 ## Lessons
 1. Test in-vehicle software against real motion: road tests or recorded GPS traces, not desktop simulation.

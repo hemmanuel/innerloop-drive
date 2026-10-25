@@ -1,11 +1,21 @@
 # Direction: the key dilemma and our options
 
-Status: decision pending. Written 2026-10-25. History is in [`project-history.md`](project-history.md); the detailed plans are
+Status: software decisions pending; buyer mandate clarified 2026-10-25 in
+[`buyer-mandate.md`](buyer-mandate.md). History is in [`project-history.md`](project-history.md); the detailed plans are
 [`sync-navigation-plan.md`](sync-navigation-plan.md) and [`ai-acquisitions-plan.md`](ai-acquisitions-plan.md).
 
 ## What we're building
-One acquisitions system for the locked buy box (5,000–15,000 sq ft, vacant or teardown, Zone X, inside 610 near transit; Third
-and Second Ward first):
+One acquisitions system for the current buyer mandate: at least 10,000 contiguous
+sq ft with suitable dimensions, anywhere inside 610 within 0.5 mile of a bus or
+METRORail stop; existing improvements are acceptable if the project works. The
+standard site becomes two 5,000-sq-ft parcels, each holding one duplex with two
+5-bed/5-bath sides (four units, 20 bedrooms and 20 bathrooms total). Buyers may pay
+up to $20 per land sq ft after diligence; roughly 5,000-sq-ft bargains are a separate
+exception lane. There is no buyer preference for particular wards.
+
+The earlier 15,000-sq-ft ceiling and Zone-X-only screen are not confirmed buyer
+requirements. Preserve flood diligence and resolve the policy explicitly; see
+the mandate for remaining measurement, layout, cost, and delivery questions.
 
 - **Study** an area on the desktop and build named lists: completed co-living comps, teardown leads, listed lots to text, inbound leads.
 - **Work** those lists through the CRM (GoHighLevel is the current candidate): D2A texting rounds, owner outreach, PPC inbound.
@@ -16,7 +26,14 @@ and Second Ward first):
   - Parcels in active conversations show their CRM status.
 - **Navigate** to list stops, eventually inside the app.
 
-Every piece hangs on one stable parcel ID: the HCAD account, or the combined key for multi-parcel sites.
+Every piece hangs on stable parcel identity: retain each HCAD account and a
+canonical site/assembly key with its constituent accounts. A site may contain
+multiple tax accounts or legal lots; an account count is not a legal-lot count.
+
+Reuse the existing inside-610 parcel and co-living research. The Third/Second Ward
+context layer is current map coverage, not the boundary for new acquisitions work.
+The pipeline needs an audit against the clarified mandate before its scores can
+be treated as current buyer qualification.
 
 ## The key dilemma
 **We want to start working the buy box aggressively now, but the field tool that makes that efficient sits on a foundation we may

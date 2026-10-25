@@ -2,25 +2,27 @@
 
 Status: planning only; not yet implemented.
 
-Related plan: [`sync-navigation-plan.md`](sync-navigation-plan.md).
+Current acquisition criteria: [`buyer-mandate.md`](buyer-mandate.md), clarified
+2026-10-25. Related plan: [`sync-navigation-plan.md`](sync-navigation-plan.md).
 
 ## Objective
 
 Use the parcel platform, Joying driving application, future desktop viewer, and
-a true CRM as one coordinated acquisitions system. The initial wholesale buy box
-is:
+a true CRM as one coordinated acquisitions system. Source at least 10,000
+contiguous sq ft with dimensions supporting two 5,000-sq-ft parcels and one duplex
+per parcel. Each duplex side is 5 bed / 5 bath: four units and 20 bedrooms / 20
+bathrooms total for PadSplit use. Existing improvements may be acceptable.
 
-- 5,000–15,000 sq ft parcels;
-- unimproved land or an acceptable teardown;
-- FEMA Zone X;
-- inside Loop 610;
-- near a bus stop;
-- initially concentrated in Third Ward and Second Ward;
-- both direct-to-seller (D2S) and direct-to-agent (D2A) acquisition lanes;
-- off-market, FSBO, expired, and stale on-market opportunities.
+The buyer's geographic criteria are anywhere inside Loop 610 within 0.5 mile of
+a bus or METRORail stop, with no ward preference. Up to $20 per land sq ft is a
+conditional acquisition ceiling after project diligence. Roughly 5,000-sq-ft
+bargains are a separate exception lane. Larger sites require a specific layout
+and buyer price; the older 15,000-sq-ft cap was not reconfirmed.
 
-If those areas do not produce enough viable leads, the system should support a
-measured pivot toward inside-610 areas with less expensive land.
+Cover off-market, FSBO, expired/withdrawn, and stale on-market opportunities in
+both D2S and D2A lanes. Reuse the existing inside-610 research and audit its
+coverage and scoring. Flood policy, transit distance method, exact dimensions,
+fee treatment, and delivery requirements remain as documented in the mandate.
 
 ## Product boundaries
 
@@ -44,17 +46,19 @@ through APIs and webhooks. Avoid maintaining competing copies of CRM activities.
 
 ## Configurable buy boxes
 
-Do not hard-code Third Ward or Second Ward rules into either user interface.
+Do not hard-code neighborhood preferences into either user interface or scoring.
 Store versioned strategy profiles with:
 
 ```text
 name and version
 active geography/boundary
-minimum and maximum parcel size
+primary site size and prototype; separate smaller-site exception
+optional upper size bound (unset unless confirmed)
+constituent parcel IDs, contiguity and proposed legal-lot layout
 allowed improvements/teardown rules
-allowed flood zones
-maximum distance to transit
-land-price or offer constraints
+flood policy and confirmation status
+transit types, maximum distance, measurement method and service date
+conditional buyer price, assignment and cost-treatment assumptions
 D2S/D2A source rules
 ranking weights
 ```
@@ -70,6 +74,12 @@ For every parcel, keep separate outputs:
 
 AI must not silently override hard eligibility rules. Unknown data should remain
 unknown rather than being treated as a pass.
+
+Evaluate assemblies as well as single parcels. Keep constituent HCAD records,
+legal-lot evidence, and proposed split feasibility distinct. A 10,000-sq-ft area
+match is a discovery result, not proof that two duplexes fit. Keep neighborhood
+and campus distance as descriptive research fields, outside buyer preference
+scoring. Audit legacy priorities before reusing them under this profile.
 
 ## Unified property opportunity
 
@@ -109,9 +119,15 @@ Use deterministic filters first, then AI to summarize and rank evidence such as:
 
 Every generated claim should cite an underlying source record. Example:
 
-> High-priority D2S candidate: 9,800 sq ft, Zone X, 0.12 miles from a bus stop,
-> absentee owner, held 17 years, and no recent permits. Field verification is
-> still required.
+> Illustrative D2S research candidate: two adjoining 5,000-sq-ft accounts with
+> matching owner labels, 0.12 miles straight-line from a bus stop, mapped Zone X.
+> Confirm current ownership, legal lots, the buyer's distance convention, and
+> prototype fit before marking the site qualified. This is not a real lead.
+
+For listed sites, reconcile whether the asking price covers one lot or the
+entire project before calculating price per square foot. Retain source dates
+and conflicting values. Keep seller motivation separate from feasibility and
+use the buyer's site-specific price for assignment economics.
 
 ### Scouting and driving for dollars
 
@@ -174,9 +190,10 @@ After a drive, an AI-generated review can summarize parcels visited, saves and
 rejections, observations, photos, CRM updates, recommended outreach, and open
 research tasks.
 
-## Geographic expansion
+## Whole-Loop coverage and operational prioritization
 
-Evaluate potential expansion areas with transparent metrics:
+All inside-610 neighborhoods are in scope from the start. Choose research,
+outreach, and driving batches with transparent metrics:
 
 - count and density of eligible parcels;
 - median land price per square foot;
@@ -189,8 +206,12 @@ Evaluate potential expansion areas with transparent metrics:
 
 Example question:
 
-> Which inside-610 areas have at least 100 eligible parcels and materially lower
-> land prices than Third Ward?
+> Which inside-610 clusters have the most feasible unworked sites with room for
+> an assignment at the buyer's approved price, and can be scouted efficiently?
+
+Batching and market observations do not create new neighborhood eligibility
+gates. Compare evidence quality and actual buyer acceptance outcomes across the
+whole inventory. Historical appraisal values are not verified sale prices.
 
 Do not use protected-class attributes or demographic proxies to target housing
 outreach or rank opportunities.
@@ -243,8 +264,8 @@ Minimize owner/contact data sent to external model providers.
 
 ## Suggested delivery sequence
 
-1. Shared parcel saving and PC/Joying synchronization.
-2. Stable parcel, owner, listing, opportunity, and activity identifiers.
+1. Stable parcel/site identity, constituent accounts, and an audit of existing data against the current mandate.
+2. Shared parcel saving and PC/Joying synchronization.
 3. CRM integration contract and field ownership rules.
 4. Mobile observations, rejection reasons, and route workflow.
 5. Configurable buy-box engine with evidence-backed explanations.
@@ -252,7 +273,7 @@ Minimize owner/contact data sent to external model providers.
 7. Research briefs and next-best-action suggestions.
 8. Human-reviewed outreach drafting.
 9. Ordered route synchronization and basic next-stop navigation.
-10. Outcome-trained ranking and geographic expansion analysis.
+10. Outcome-trained ranking and whole-Loop coverage analysis.
 11. Guided maneuvers, rerouting, and voice navigation.
 
 The highest-value early AI features are expected to be voice-note structuring,
@@ -264,8 +285,8 @@ clean, consistent outcome data.
 
 - Which CRM will be authoritative?
 - Which MLS/listing and contact-data sources are licensed and available?
-- What exactly qualifies as “near” a bus stop?
-- How should teardown acceptability and land economics be calculated?
+- Is the confirmed 0.5-mile bus/rail threshold measured by walking route or straight line?
+- What flood policy, prototype dimensions, improvement/delivery conditions, and fee/cost treatment does the buyer confirm?
 - Which statuses, rejection reasons, and campaign channels are required first?
 - Will field photos come from the Joying, a paired phone, or both?
 - Which outreach steps always require approval?

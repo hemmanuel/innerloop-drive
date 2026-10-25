@@ -1,5 +1,17 @@
 # Implementation log
 
+## 2026-10-25 — Buyer context and documentation alignment
+
+Recorded the user's clarified mandate in `docs/buyer-mandate.md`: the exact
+two-duplex/four-unit model, whole-Loop scope, 0.5-mile bus/rail proximity,
+conditional $20/sq-ft ceiling, improvements, and smaller-site exception. Linked
+it from README and agent context, aligned the acquisition/direction/sync plans,
+and marked earlier screening choices as historical in the project history.
+
+This is a documentation change. Existing data and runtime filters still require
+an audit against the mandate. No app feature, data regeneration, field validation,
+outreach workflow, or pending technology decision is completed by this update.
+
 ## 2026-10-25 — Basemap and map interaction
 
 Version 0.5 adds the controls needed outside strict vehicle following:
