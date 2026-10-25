@@ -1,66 +1,61 @@
 # Inner Loop Drive
 
-Android drive-mode map for the Joying head unit. It packages the existing Inner Loop parcel application in a hardware-accelerated WebView while obtaining position and course directly from Android's GPS provider.
+Native Android drive-mode parcel map for the Joying head unit.
 
-## Why an APK
+## Current design
 
-Firefox 100 and Chrome browser tests had unstable browser geolocation, excessive camera jitter, and expensive redraws. The APK preserves the existing parcel UI and offline map assets but bypasses browser geolocation and removes the Termux HTTP-server dependency.
+Version 0.5 replaces the Leaflet WebView runtime with a hardware-accelerated
+native renderer designed around continuous vehicle motion:
 
-## Current behavior
+- GPS callbacks run on a dedicated thread.
+- A bounded motion estimator fills the intervals between approximately 1 Hz GNSS fixes.
+- Position corrections and turns are eased in one synchronized frame loop.
+- Stale fixes are shown explicitly and are never extrapolated for more than two seconds.
+- All 41,669 context and candidate parcels remain available offline.
+- Only parcels intersecting the current viewport are drawn.
+- Existing offline satellite imagery is decoded asynchronously and cached.
+- A regular Esri street-map basemap is available and cached after first use.
+- Drag-to-pan and focal-point pinch zoom are supported.
+- Panning or pinching suspends tracking; **Follow** returns to the vehicle.
+- POV and north-up modes plus native zoom controls remain available.
 
-- Direct `LocationManager.GPS_PROVIDER` updates.
-- Follow camera with stationary-drift rejection and throttled animated movement.
-- North-up / heading-up (`POV`) toggle.
-- In POV mode, direction of travel is held at the top of the screen.
-- Rotating compass dial shows north relative to the display.
-- GPS course drives orientation; noisy browser orientation events are disabled in APK mode.
-- All candidate lots, detailed parcel data, offline Protomaps basemap, and optional satellite tiles remain available.
-- The 20,000-feature context-parcel layer is delayed until zoom 18 in drive mode to reduce rendering load.
-- Screen stays awake and the activity uses immersive landscape mode.
+The former browser research interface is retained under `web/`, but it is not
+part of the native Drive APK.
 
 ## Installed application
 
-Package and activity:
-
 ```text
-com.fcim.innerloop/.MainActivity
+Package:  com.fcim.innerloop
+Activity: com.fcim.innerloop/.MainActivity
+Label:    Inner Loop Drive
 ```
 
-Launcher label: **Inner Loop Drive**. The manifest contains a standard launcher intent and a custom map/compass icon, so it appears in the Joying apps menu.
-
-Current distributable:
-
-```text
-/sdcard/Download/innerloop-drive.apk
-```
+The native test build uses the same signing identity and upgrades the existing
+application in place.
 
 ## Repository layout
 
 ```text
-AndroidManifest.xml             Android package, permissions, launcher entry
-src/.../MainActivity.java      WebView lifecycle and native GPS bridge
-web/index.html                 Version-controlled map UI/drive modifications
-web/lib/leaflet-rotate-src.js  Offline Leaflet rotation support
-res/drawable/ic_launcher.xml   Launcher icon
-build.sh                       Reproducible local APK build
- docs/                          Architecture, assets, and implementation history
+AndroidManifest.xml                     package, permissions, activity
+src/com/fcim/innerloop/MainActivity.java GPS lifecycle and dedicated GNSS thread
+src/com/fcim/innerloop/ParcelMapView.java motion model and native renderer
+src/com/fcim/innerloop/ParcelData.java   compact parcel loader
+src/com/fcim/innerloop/TileStore.java    asynchronous satellite tile LRU
+tools/build_native_data.py               generated JS → native parcel binary
+web/                                     legacy WebView implementation
+build.sh                                 reproducible APK build
 ```
 
-Generated/private data and build products are intentionally ignored by Git.
+Generated/private parcel data, imagery, keys, and build products are excluded
+from Git.
 
-## Build
+## Build and install
 
-Prerequisites in Termux:
+The build imports generated source assets from:
 
-```sh
-pkg install aapt2 apksigner d8 gradle zip openssl-tool
+```text
+/sdcard/Download/innerloop/innerloop
 ```
-
-The build expects:
-
-- Android API 33 compile jar at `sdk/platforms/android-33/android.jar`.
-- Generated map package at `/sdcard/Download/innerloop/innerloop`.
-- Existing local signing key, or it creates one on the first build.
 
 Build and install:
 
@@ -70,14 +65,18 @@ cd ~/innerloop-android
 adb install -r build/innerloop-drive.apk
 ```
 
-Copy the release APK:
+The resulting APK is approximately 68 MiB, mostly offline satellite imagery.
+Do not replace the signing key after distribution; Android requires subsequent
+updates to use the same key.
 
-```sh
-cp build/innerloop-drive.apk /sdcard/Download/innerloop-drive.apk
-```
+## Field validation
 
-Do not delete or replace the signing key after distributing the application; Android requires future updates to use the same key.
+The native renderer has been installed and smoke-tested on the Joying unit. It
+loads all 41,669 parcels with aligned satellite imagery. A road test is still
+required to tune prediction/correction timing and POV look-ahead distance against
+the unit's real GNSS behavior.
 
 ## Data privacy
 
-`data.js` contains public-record owner names. It and the generated parcel/basemap packages are excluded from this repository. Do not publish them unintentionally.
+The generated source data includes public-record owner names. It and generated
+map assets are intentionally excluded from this repository.

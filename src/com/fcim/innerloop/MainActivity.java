@@ -7,62 +7,36 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.SystemClock;
-import android.provider.Settings;
+import android.os.HandlerThread;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.GeolocationPermissions;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Toast;
-import java.util.Locale;
 
 public class MainActivity extends Activity implements LocationListener {
     private static final int LOCATION_REQUEST = 41;
-    private WebView web;
+    private ParcelMapView map;
     private LocationManager locations;
-    private boolean pageReady;
-    private Location pending;
-    private long lastDispatch;
+    private HandlerThread gpsThread;
+    private boolean listening;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setStatusBarColor(0xff000000);
-
-        web = new WebView(this);
-        setContentView(web);
-        WebSettings s = web.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setAllowFileAccess(true);
-        s.setAllowContentAccess(true);
-        s.setMediaPlaybackRequiresUserGesture(false);
-        s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        s.setBuiltInZoomControls(false);
-        web.setWebChromeClient(new WebChromeClient() {
-            @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback cb) {
-                cb.invoke(origin, true, false);
-            }
-        });
-        web.setWebViewClient(new WebViewClient() {
-            @Override public void onPageFinished(WebView view, String url) {
-                pageReady = true;
-                if (pending != null) dispatch(pending, true);
-            }
-        });
-        web.loadUrl("file:///android_asset/app/index.html?drive=1&z=17&native=1");
+        map = new ParcelMapView(this);
+        setContentView(map);
         locations = (LocationManager)getSystemService(LOCATION_SERVICE);
+        gpsThread = new HandlerThread("innerloop-gnss");
+        gpsThread.start();
         requestLocationPermission();
     }
 
     private void requestLocationPermission() {
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) startGps();
-        else requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_REQUEST);
+        else requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_REQUEST);
     }
 
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] results) {
@@ -72,57 +46,53 @@ public class MainActivity extends Activity implements LocationListener {
     }
 
     private void startGps() {
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
+        if (listening || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
         try {
-            locations.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500L, 0f, this);
+            // Location delivery stays off the render/UI thread. The receiver decides the
+            // physical fix rate; the map's motion model supplies continuous frames between fixes.
+            locations.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f,
+                    this, gpsThread.getLooper());
+            listening = true;
             Location last = locations.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (last != null) onLocationChanged(last);
-        } catch (Exception e) {
-            Toast.makeText(this, "GPS unavailable: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (Exception error) {
+            Toast.makeText(this, "GPS unavailable: " + error.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
-    @Override public void onLocationChanged(Location l) {
-        if (l == null || (l.hasAccuracy() && l.getAccuracy() > 150f)) return;
-        pending = l;
-        long now = SystemClock.elapsedRealtime();
-        if (pageReady && now - lastDispatch >= 750L) dispatch(l, false);
-    }
-
-    private void dispatch(Location l, boolean force) {
-        if (!pageReady || l == null) return;
-        long now = SystemClock.elapsedRealtime();
-        if (!force && now - lastDispatch < 750L) return;
-        lastDispatch = now;
-        float accuracy = l.hasAccuracy() ? l.getAccuracy() : 20f;
-        float speed = l.hasSpeed() ? l.getSpeed() : 0f;
-        String heading = l.hasBearing() && speed >= 0.7f ? String.format(Locale.US, "%.2f", l.getBearing()) : "null";
-        String js = String.format(Locale.US,
-            "window.fcimNativePosition&&window.fcimNativePosition({latitude:%.7f,longitude:%.7f,accuracy:%.1f,speed:%.2f,heading:%s,timestamp:%d})",
-            l.getLatitude(), l.getLongitude(), accuracy, speed, heading, l.getTime());
-        web.evaluateJavascript(js, null);
+    @Override public void onLocationChanged(final Location location) {
+        if (location == null || (location.hasAccuracy() && location.getAccuracy() > 150f)) return;
+        final Location copy = new Location(location);
+        map.post(new Runnable() {
+            @Override public void run() { map.setLocation(copy); }
+        });
     }
 
     @Override protected void onResume() {
         super.onResume();
         immersive();
-        if (locations != null && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) startGps();
+        startGps();
     }
 
     @Override protected void onPause() {
-        if (locations != null) locations.removeUpdates(this);
+        if (locations != null && listening) {
+            locations.removeUpdates(this);
+            listening = false;
+        }
         super.onPause();
+    }
+
+    @Override protected void onDestroy() {
+        map.close();
+        if (gpsThread != null) gpsThread.quitSafely();
+        super.onDestroy();
     }
 
     private void immersive() {
         getWindow().getDecorView().setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-    }
-
-    @Override public void onBackPressed() {
-        if (web.canGoBack()) web.goBack(); else super.onBackPressed();
+                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
     }
 
     @Override public void onProviderEnabled(String provider) {}

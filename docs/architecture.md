@@ -1,53 +1,70 @@
 # Architecture
 
-## Runtime
+## Native Drive runtime (0.4+)
 
 ```text
-Inner Loop Drive Activity
-  ├─ Android LocationManager.GPS_PROVIDER
-  │    └─ WebView evaluateJavascript(fcimNativePosition(...))
-  └─ Chromium WebView
-       ├─ Leaflet 1.9.4
-       ├─ Leaflet.Rotate 0.3.0
-       ├─ offline PMTiles basemap embedded by basemap.js
-       ├─ generated candidate/site data in data.js
-       ├─ generated context parcels in parcels.js
-       └─ offline XYZ satellite JPEG tiles under sat/
+Android LocationManager.GPS_PROVIDER
+  └─ dedicated innerloop-gnss HandlerThread
+       └─ immutable Location posted to UI
+            └─ motion estimator
+                 ├─ bounded position prediction between physical fixes
+                 ├─ eased correction when a new fix arrives
+                 ├─ circular course interpolation
+                 └─ explicit stale-fix state
+                      ↓
+             hardware-accelerated native Canvas
+                 ├─ offline satellite tile cache
+                 ├─ viewport-culled parcel paths
+                 ├─ labels
+                 └─ synchronized camera, parcels, and vehicle
 ```
 
-The APK loads `file:///android_asset/app/index.html?drive=1&z=17&native=1`. The `native=1` flag prevents the page from registering browser geolocation and device-orientation listeners.
+There is no WebView or JavaScript in the Drive runtime. GPS collection cannot be
+blocked by parcel drawing because callbacks use a dedicated `HandlerThread`.
 
-## Native GPS bridge
+The receiver currently supplies physical GNSS fixes at approximately 1 Hz. The
+renderer runs between those fixes, predicts no more than two seconds ahead, and
+eases each correction rather than starting independent marker, pan, and rotation
+animations. Prediction stops when fixes are stale.
 
-`MainActivity` requests precise location permission and subscribes directly to `GPS_PROVIDER`. This matters on the Joying unit because Firefox's geolocation used the fused provider, timed out, and delivered updates inconsistently even though the OEM GPS services were receiving fixes.
+## Parcel storage and rendering
 
-Locations are dispatched to JavaScript no more often than every 750 ms. The payload includes latitude, longitude, accuracy, speed, GPS bearing when moving, and timestamp. Android currently supplies physical GNSS fixes at approximately 1 Hz even though the requested interval is 500 ms.
+`tools/build_native_data.py` converts both generated datasets into
+`assets/drive/parcels.bin` during the build:
 
-## Camera and orientation
+- all 19,947 context parcels;
+- all 21,722 candidate parcels;
+- priority, pick, area-label, and abbreviated address fields;
+- polygon rings encoded as local Web Mercator floats.
 
-The JavaScript camera:
+All 41,669 parcels remain available offline. Runtime rendering culls by bounding
+box to a padded viewport; it does not instantiate or redraw off-screen parcels.
+Android `Path` objects are created once when the binary loads and reused.
 
-- ignores small offsets attributable to stationary GPS wander;
-- limits follow-camera work to approximately 1 Hz;
-- animates ordinary movement and snaps only large jumps;
-- uses raw native GPS course rather than slow averaging;
-- animates between course updates;
-- sets Leaflet.Rotate bearing to the negative GPS course for heading-up display.
+The camera and every map layer share one transform per frame. In POV mode the
+vehicle is anchored below center and position/course move together. North-up is
+available from the on-screen toggle.
 
-Leaflet.Rotate's positive bearing rotates map content clockwise. Therefore, holding a geographic heading at screen-up requires:
+Drag gestures invert the current rotated map transform to pan in geographic
+space. Pinch zoom preserves the geographic point beneath the gesture focus.
+Either gesture suspends vehicle following; the Follow control restores the live
+camera.
 
-```text
-map bearing = -GPS course (normalized to 0–360)
-```
+## Basemap
 
-The compass dial rotates by the current map bearing. In north-up mode its N marker remains at the top. In POV mode it shows where north lies relative to the vehicle-forward direction.
+The native app packages the existing 2,098 USGS/USDA satellite JPEG tiles.
+The Satellite/Map control switches to Esri World Street Map raster tiles for a
+regular basemap. Street tiles are cached in application storage after first use;
+the initial view therefore requires connectivity.
 
-## Rendering controls
+A three-worker background loader and 32 MiB bitmap LRU prevent asset, network,
+or disk decoding on the UI thread. Zoom levels above the satellite pack's native
+zoom 16 enlarge those tiles while parcel paths remain vector-sharp.
 
-The primary 10,000+ sq-ft candidate polygons remain visible in drive mode. The much larger Third/Second Ward context parcel layer is retained but only drawn at zoom 18 or greater while driving. This avoids rebuilding hundreds of extra Leaflet polygons during routine zoom-17 following.
+## Legacy implementation
 
-## Asset strategy
-
-The generated map directory remains the authoritative data package. `build.sh` copies it into APK assets, then overlays the version-controlled `web/index.html` and rotation library. This keeps sensitive and large generated datasets out of Git while preserving reproducible application logic.
-
-A future fully native MapLibre renderer could further improve graphics performance, but would require converting the generated JavaScript datasets and offline PMTiles/satellite integration. The current hybrid keeps every existing filter and detail screen while solving the GPS-provider problem natively.
+`web/` retains the former Leaflet/Leaflet.Rotate implementation as source and
+fallback reference. It is no longer packaged by `build.sh`. Its old pipeline
+combined UI-thread JavaScript injection, marker jumps, independent pan/rotation
+animations, and periodic polygon reconstruction; that architecture caused the
+field-observed stalls and jitter.

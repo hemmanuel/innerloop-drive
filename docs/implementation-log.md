@@ -1,5 +1,44 @@
 # Implementation log
 
+## 2026-10-25 — Basemap and map interaction
+
+Version 0.5 adds the controls needed outside strict vehicle following:
+
+1. Added a Satellite/Map toggle. Satellite remains fully offline; the regular
+   Esri street basemap downloads asynchronously and is cached after first use.
+2. Added drag-to-pan with correct inverse transforms in both north-up and POV.
+3. Added focal-point pinch zoom from zoom 15 through 19.5.
+4. Panning or pinching suspends tracking, and a visible Follow control restores it.
+5. Retained +/- controls for operation on a resistive or difficult touchscreen.
+
+Pan and basemap tile retrieval were smoke-tested on the Joying unit. Multi-touch
+pinch behavior still needs direct physical-screen validation.
+
+## 2026-10-25 — Native renderer redesign
+
+Road use showed that the WebView version remained extremely jittery, could lose
+the vehicle for tens of seconds, snapped after stalls, and rotated poorly.
+Throttle changes could not fix the underlying combination of approximately 1 Hz
+GPS, independent Leaflet animations, JavaScript/UI-thread delivery, and polygon
+reconstruction.
+
+Version 0.4 therefore replaces the Drive runtime rather than tuning it:
+
+1. Removed WebView and JavaScript from the packaged runtime.
+2. Moved `GPS_PROVIDER` callbacks to a dedicated `HandlerThread`.
+3. Added a continuous motion estimator with two-second maximum prediction,
+   eased fix correction, smoothly interpolated course, and visible stale state.
+4. Added a native hardware-accelerated renderer with one synchronized transform
+   for camera, vehicle, imagery, and parcel geometry.
+5. Compiled every context and candidate parcel—41,669 total—into a compact
+   4.1 MiB binary. Only the padded viewport is drawn.
+6. Reused the full offline satellite pack through asynchronous tile loading and
+   a 24 MiB bitmap cache.
+7. Installed and smoke-tested the signed upgrade on the Joying unit. Parcel
+   geometry aligns with imagery and the process uses roughly 84 MiB PSS after load.
+
+A moving road test remains required before declaring motion tuning final.
+
 ## 2026-10-25 — Browser investigation
 
 1. Found that the extracted application was nested at:
@@ -48,15 +87,15 @@ Changes:
 ## Current release
 
 ```text
-Version: 0.3.0 (versionCode 3)
-APK: /sdcard/Download/innerloop-drive.apk
+Version: 0.5.0-native (versionCode 5)
+APK: `build/innerloop-drive.apk` (native field-test build)
 Package: com.fcim.innerloop
 ```
 
 ## Remaining field validation
 
-- Confirm heading-up stays aligned through several real turns.
-- Evaluate interpolation at low speed and stop/start transitions.
+- Road-test fix continuity, turning, stop/start behavior, and POV alignment.
+- Tune correction time constant and look-ahead distance from field results.
 - Check sleep/wake behavior after a full ignition cycle.
-- Decide whether POV/north-up preference should persist across launches.
-- Consider a native MapLibre renderer only if WebView polygon rendering remains inadequate after GPS/camera fixes.
+- Decide whether POV/north-up and zoom preferences should persist.
+- Add an online/vector street-map option only if satellite plus parcel outlines is insufficient.
