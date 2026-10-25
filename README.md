@@ -43,6 +43,7 @@ src/com/fcim/innerloop/ParcelData.java   compact parcel loader
 src/com/fcim/innerloop/TileStore.java    asynchronous satellite tile LRU
 tools/build_native_data.py               generated JS → native parcel binary
 docs/sync-navigation-plan.md             planned PC/Joying sync and routing
+docs/ai-acquisitions-plan.md             planned AI-assisted acquisitions ecosystem
 web/                                     legacy WebView implementation
 build.sh                                 reproducible APK build
 ```
