@@ -2,6 +2,9 @@
 
 Decision: on October 26, 2026 the user selected Supabase and authorized the first
 cross-device workflow in this repository. The native Canvas map stays in place.
+For the latest session boundary and next authorized action, read
+[session-handoff.md](session-handoff.md). The user currently requests a read-only
+connection check and a report before any further database work.
 
 ## First workflow
 
@@ -241,12 +244,14 @@ removal of old database runs are not implemented; do not delete old runs on the
 strength of this recommendation alone.
 
 The user subsequently authenticated in Chrome and connected Supabase to their
-ChatGPT account. This running session still reports the Supabase plugin as
-uninstalled and exposes no Supabase tools; the CLI has no login token either.
-Use the plugin connection when available. Check Plugins → Installed, then start
-a new chat with `@Supabase` after installation, following the
+ChatGPT account. The latest check confirms the plugin is **installed and enabled**;
+its skills are loaded, but this chat still exposes no Supabase account-access
+tools. Authenticated connectivity is not yet verified. The CLI has no login token.
+Use the plugin connection when available, following the
 [official plugin instructions](https://learn.chatgpt.com/docs/plugins).
-The CLI flow below remains an alternative, not a requirement for plugin access.
+The next session should perform a read-only connection check, report the result
+and stop. The user explicitly said not to proceed with database work. The CLI
+flow below remains an alternative, not a requirement for plugin access.
 
 Hosted provisioning requires available Supabase access. Native device validation requires
 installing the upgrade on Joying. Do not describe the local integration tests as

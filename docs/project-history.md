@@ -365,6 +365,21 @@ override the user's later clarification.
   reports uninstalled and exposes no Supabase tools. Provided the official
   Plugins/Installed and new-chat guidance; no credentials were requested in chat.
 
+## 18. Connection-only boundary and session handoff (Oct 26)
+
+- A later plugin check confirms Supabase is now installed and enabled; its
+  skills loaded in this chat. Supabase account-access tools still did not appear,
+  so authenticated service access has not yet been verified.
+- The user instructed: "Don't proceed with the db work, let me know once it's
+  connected." No database work followed that instruction. The next session must
+  run a read-only connection check, report it and await further instruction.
+- Added [session-handoff.md](session-handoff.md) and linked it from AGENTS.md and
+  README. It records the branch/PR, buyer context, model, completed validation,
+  artifact paths, stopped local services, uncompleted deployment and plan choice.
+- Code and docs are pushed on `codex/cross-device-workflow`; private datasets
+  remain on the PC. A new session must distinguish a repo clone from possession
+  of the generated full-Loop snapshot and native bundle.
+
 ## Lessons
 1. Test in-vehicle software against real motion: road tests or recorded GPS traces, not desktop simulation.
 2. Browser/WebView runtimes are the wrong tool for a moving map on a head unit.

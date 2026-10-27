@@ -11,6 +11,7 @@ reduces the tested database from 470 MB to 442 MB. Hosted setup awaits an availa
 Supabase connection, and the Joying upgrade remains to be installed.
 
 ## Start here
+- [`docs/session-handoff.md`](docs/session-handoff.md): current state, private artifact locations and the user's connection-check-only instruction for the next session.
 - [`docs/buyer-mandate.md`](docs/buyer-mandate.md): current buyer criteria, exact duplex model and sourcing context (updated 2026-10-26).
 - [`docs/cross-device-workflow.md`](docs/cross-device-workflow.md): database, desktop/Joying sync, full Loop build and deployment steps.
 - [`docs/site-layout-screen.md`](docs/site-layout-screen.md): Houston frontage/access rules and the layout screen replacing the 100-ft shortcut.

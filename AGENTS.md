@@ -1,5 +1,8 @@
 # Project context
 
+Read [docs/session-handoff.md](docs/session-handoff.md) first for the current
+session boundary, connection state, saved artifacts and next authorized action.
+
 Read [docs/buyer-mandate.md](docs/buyer-mandate.md) and
 [docs/direction.md](docs/direction.md) before changing acquisition filters, scoring,
 data exports, or field/desktop workflows. Use [README.md](README.md) for the current
