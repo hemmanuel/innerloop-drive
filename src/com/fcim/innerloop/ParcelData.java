@@ -13,12 +13,12 @@ final class ParcelData {
         final int kind, priority;
         final boolean picked;
         final float area, minX, minY, maxX, maxY;
-        final String address;
+        final String address, siteId, accounts, neighborhood, status;
         final Path path;
 
         Feature(int kind, int priority, boolean picked, float area,
                 float minX, float minY, float maxX, float maxY,
-                String address, Path path) {
+                String address, String siteId, String accounts, String neighborhood, String status, Path path) {
             this.kind = kind;
             this.priority = priority;
             this.picked = picked;
@@ -28,6 +28,10 @@ final class ParcelData {
             this.maxX = maxX;
             this.maxY = maxY;
             this.address = address;
+            this.siteId = siteId;
+            this.accounts = accounts;
+            this.neighborhood = neighborhood;
+            this.status = status;
             this.path = path;
         }
 
@@ -48,7 +52,7 @@ final class ParcelData {
     static ParcelData load(AssetManager assets) throws IOException {
         DataInputStream in = new DataInputStream(new BufferedInputStream(assets.open("drive/parcels.bin"), 256 * 1024));
         try {
-            if (in.readInt() != 0x494c5032) throw new IOException("Bad parcel data header");
+            if (in.readInt() != 0x494c5033) throw new IOException("Rebuild parcels.bin with stable IDs (ILP3)");
             int count = in.readInt();
             double originLon = in.readDouble();
             double originLat = in.readDouble();
@@ -65,6 +69,7 @@ final class ParcelData {
                 byte[] raw = new byte[stringLength];
                 in.readFully(raw);
                 String address = new String(raw, "UTF-8");
+                String siteId=readString(in), accounts=readString(in), neighborhood=readString(in), status=readString(in);
                 int ringCount = in.readInt();
                 Path path = new Path();
                 path.setFillType(Path.FillType.EVEN_ODD);
@@ -77,11 +82,17 @@ final class ParcelData {
                     path.close();
                 }
                 result.add(new Feature(kind, priority, picked, area,
-                        minX, minY, maxX, maxY, address, path));
+                        minX, minY, maxX, maxY, address, siteId, accounts, neighborhood, status, path));
             }
             return new ParcelData(result, originLon, originLat);
         } finally {
             in.close();
         }
+    }
+
+    private static String readString(DataInputStream in) throws IOException {
+        int size=in.readInt();
+        if(size<0 || size>1024*1024) throw new IOException("Invalid parcel string size");
+        byte[] bytes=new byte[size];in.readFully(bytes);return new String(bytes,"UTF-8");
     }
 }

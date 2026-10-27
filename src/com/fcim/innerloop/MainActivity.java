@@ -19,6 +19,7 @@ public class MainActivity extends Activity implements LocationListener {
     private LocationManager locations;
     private HandlerThread gpsThread;
     private boolean listening;
+    private WorkspaceUi workspace;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -26,7 +27,17 @@ public class MainActivity extends Activity implements LocationListener {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setStatusBarColor(0xff000000);
         map = new ParcelMapView(this);
-        setContentView(map);
+        android.widget.FrameLayout frame=new android.widget.FrameLayout(this);
+        frame.addView(map);
+        final android.widget.Button workspaceButton=new android.widget.Button(this);
+        workspaceButton.setText("Workspace");
+        android.widget.FrameLayout.LayoutParams pos=new android.widget.FrameLayout.LayoutParams(
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT,android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            android.view.Gravity.BOTTOM|android.view.Gravity.RIGHT);
+        pos.bottomMargin=36;pos.rightMargin=14;frame.addView(workspaceButton,pos);setContentView(frame);
+        workspace=new WorkspaceUi(this,map,()->workspaceButton.setText(workspace.sync.status.equals("Synced")?"Workspace ✓":"Workspace · sync"));
+        workspaceButton.setOnClickListener(v->workspace.menu());
+        map.setSelectionListener(f->workspace.parcel(f));
         locations = (LocationManager)getSystemService(LOCATION_SERVICE);
         gpsThread = new HandlerThread("innerloop-gnss");
         gpsThread.start();
@@ -72,9 +83,11 @@ public class MainActivity extends Activity implements LocationListener {
         super.onResume();
         immersive();
         startGps();
+        if(workspace!=null)workspace.sync.active(true);
     }
 
     @Override protected void onPause() {
+        if(workspace!=null)workspace.sync.active(false);
         if (locations != null && listening) {
             locations.removeUpdates(this);
             listening = false;
@@ -83,6 +96,7 @@ public class MainActivity extends Activity implements LocationListener {
     }
 
     @Override protected void onDestroy() {
+        if(workspace!=null)workspace.sync.close();
         map.close();
         if (gpsThread != null) gpsThread.quitSafely();
         super.onDestroy();

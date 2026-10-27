@@ -22,3 +22,16 @@
 # Editor/OS files
 *.swp
 .DS_Store
+__pycache__/
+*.pyc
+
+# Local connections, research snapshots and database runtimes
+.env
+.env.*
+!.env.example
+/.local/
+/supabase/.temp/
+/supabase/.branches/
+/web/workspace/config.local.js
+/outputs/
+/node_modules/

@@ -45,6 +45,20 @@ final class ParcelMapView extends View {
     private float zoom = 17f;
     private String nearestPick = "";
     private Location pendingLocation;
+    interface SelectionListener { void selected(ParcelData.Feature feature); }
+    private SelectionListener selectionListener;
+    private String pendingFocusId;
+    private java.util.Set<String> savedSites = new java.util.HashSet<>();
+    void setSelectionListener(SelectionListener listener) {selectionListener=listener;}
+    void setSavedSites(java.util.Set<String> sites) {savedSites=sites;updateNearestPick();invalidate();}
+    private boolean isSaved(ParcelData.Feature f) {return savedSites.contains(f.siteId);}
+    void focusSite(String id) {
+        if(data==null){pendingFocusId=id;return;}
+        for(ParcelData.Feature f:data.features)if(f.siteId.equals(id)) {
+            manualCameraX=(f.minX+f.maxX)*.5;manualCameraY=(f.minY+f.maxY)*.5;
+            follow=false;pov=false;zoom=18;visibleX=Float.NaN;invalidate();return;
+        }
+    }
     private double renderCameraX, renderCameraY, renderBearing;
     private double manualCameraX, manualCameraY;
     private float lastTouchX, lastTouchY, downTouchX, downTouchY;
@@ -101,6 +115,7 @@ final class ParcelMapView extends View {
                                 pendingLocation = null;
                                 setLocation(location);
                             }
+                            if(pendingFocusId!=null){focusSite(pendingFocusId);pendingFocusId=null;}
                             invalidate();
                         }
                     });
@@ -159,7 +174,7 @@ final class ParcelMapView extends View {
         ParcelData.Feature best = null;
         double bestDistance = Double.MAX_VALUE;
         for (ParcelData.Feature feature : data.features) {
-            if (!feature.picked) continue;
+            if (!isSaved(feature)) continue;
             double dx = (feature.minX + feature.maxX) * .5 - fixX;
             double dy = (feature.minY + feature.maxY) * .5 - fixY;
             double distance = Math.hypot(dx, dy);
@@ -211,12 +226,12 @@ final class ParcelMapView extends View {
         renderCameraY = cameraY;
         renderBearing = mapBearing;
 
-        if (hasPosition && data != null) {
+        if ((hasPosition || !follow) && data != null) {
             drawBaseTiles(canvas, cameraX, cameraY, mapBearing, scale);
             updateVisible(cameraX, cameraY, scale);
             drawParcels(canvas, cameraX, cameraY, mapBearing, scale);
             drawLabels(canvas, cameraX, cameraY, mapBearing, scale);
-            drawVehicle(canvas, cameraX, cameraY, mapBearing, scale, age);
+            if(hasPosition)drawVehicle(canvas, cameraX, cameraY, mapBearing, scale, age);
         }
         drawHud(canvas, age);
         if (hasPosition) postInvalidateOnAnimation();
@@ -277,13 +292,13 @@ final class ParcelMapView extends View {
         for (ParcelData.Feature feature : visible) if (feature.kind == 0) canvas.drawPath(feature.path, paint);
 
         for (ParcelData.Feature feature : visible) {
-            if (feature.kind == 0) continue;
-            int color = feature.picked ? Color.rgb(255, 214, 0) : PRIORITY[feature.priority];
+            if (feature.kind == 0 && !isSaved(feature)) continue;
+            int color = isSaved(feature) ? Color.rgb(255, 214, 0) : PRIORITY[feature.priority];
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(withAlpha(color, feature.priority == 0 ? 58 : 105));
             canvas.drawPath(feature.path, paint);
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth((feature.picked ? 5f : 2.3f) / scale);
+            paint.setStrokeWidth((isSaved(feature) ? 5f : 2.3f) / scale);
             paint.setColor(withAlpha(color, 245));
             canvas.drawPath(feature.path, paint);
         }
@@ -298,7 +313,7 @@ final class ParcelMapView extends View {
         text.setShadowLayer(dp(2), 0, 0, Color.BLACK);
         float[] point = new float[2];
         for (ParcelData.Feature feature : visible) {
-            if (feature.kind == 0 || feature.area <= 0) continue;
+            if ((feature.kind == 0 && !isSaved(feature)) || feature.area <= 0) continue;
             project((feature.minX + feature.maxX) * .5, (feature.minY + feature.maxY) * .5,
                     cameraX, cameraY, bearing, scale, point, 0);
             if (point[0] < -30 || point[0] > getWidth() + 30 || point[1] < -20 || point[1] > getHeight() + 20) continue;
@@ -402,6 +417,19 @@ final class ParcelMapView extends View {
             else if (followButton.contains(x, y)) follow = true;
             else if (minusButton.contains(x, y)) changeZoom(-.5f);
             else if (plusButton.contains(x, y)) changeZoom(.5f);
+            else if(selectionListener!=null && data!=null) {
+                double[] offset=screenOffsetToWorld(x,y,metresScale(zoom),renderBearing);
+                int wx=(int)Math.round(renderCameraX+offset[0]),wy=(int)Math.round(renderCameraY+offset[1]);
+                ParcelData.Feature chosen=null;
+                for(ParcelData.Feature f:visible) {
+                    if(!f.intersects(wx,wy,wx,wy))continue;
+                    android.graphics.Region region=new android.graphics.Region();
+                    region.setPath(f.path,new android.graphics.Region((int)Math.floor(f.minX)-1,(int)Math.floor(f.minY)-1,
+                        (int)Math.ceil(f.maxX)+1,(int)Math.ceil(f.maxY)+1));
+                    if(region.contains(wx,wy) && (chosen==null || f.kind>chosen.kind || (f.kind==chosen.kind && f.area<chosen.area)))chosen=f;
+                }
+                if(chosen!=null)selectionListener.selected(chosen);
+            }
             invalidate();
         }
         if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {

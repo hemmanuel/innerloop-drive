@@ -1,11 +1,41 @@
 # Direction: the key dilemma and our options
 
-Status: decision pending. Written 2026-10-25. History is in [`project-history.md`](project-history.md); the detailed plans are
+Status: Supabase and the first cross-device workflow selected 2026-10-26;
+implementation/deployment in [cross-device-workflow.md](cross-device-workflow.md).
+Buyer mandate clarified 2026-10-25 in
+[`buyer-mandate.md`](buyer-mandate.md). History is in [`project-history.md`](project-history.md); the detailed plans are
 [`sync-navigation-plan.md`](sync-navigation-plan.md) and [`ai-acquisitions-plan.md`](ai-acquisitions-plan.md).
 
 ## What we're building
-One acquisitions system for the locked buy box (5,000–15,000 sq ft, vacant or teardown, Zone X, inside 610 near transit; Third
-and Second Ward first):
+One acquisitions system for the current buyer mandate: at least 10,000 contiguous
+sq ft with suitable dimensions, anywhere inside 610 within 0.5 mile of a bus or
+METRORail stop; existing improvements are acceptable if the project works. The
+standard site becomes two 5,000-sq-ft parcels, each holding one duplex with two
+5-bed/5-bath sides (four units, 20 bedrooms and 20 bathrooms total). Buyers may pay
+up to $20 per land sq ft after diligence; roughly 5,000-sq-ft bargains are a separate
+exception lane. Short commutes to the Medical Center and UH/TSU are a soft buyer
+preference; the entire Loop remains eligible.
+
+Frontage uses the layout approach in [site-layout-screen.md](site-layout-screen.md),
+not a 100-ft cutoff. The full PC study is available at `C:\Houston_Infill\study`.
+The 2026-10-26 research pass adds street-facing measurements to all 21,722 sites
+and retains narrower and unmeasured sites for the appropriate layout review.
+The Third Ward maps now place two-story 40-by-45-ft or 30-by-60-ft duplexes,
+eight parking spaces, clearances and pedestrian routes within the actual parcel
+polygons. The user authorized reasonable dimensions instead of a city records
+request. Of 75 source sites, 13 have complete front-access layouts (5 Rosedale,
+8 Drew), 49 retain a corner/through-street/major-road access-layout queue, and 13 need another
+layout, geometry resolution or owner matching. The secondary map applies the
+same model to 30 listed-property assemblies. The former 51-site polygon-only
+count and 66-ft access shortcut are superseded for these maps. The new full-Loop
+snapshot screens 181,840 accounts and 4,603 same-owner assemblies, finding 5,407
+layout-and-transit fits. Campaign scores have not yet been recomputed against
+this larger inventory.
+See [the updated map results](third-ward-maps-and-listed-assemblages.md).
+
+The earlier 15,000-sq-ft ceiling and Zone-X-only screen are not confirmed buyer
+requirements. Preserve flood diligence and resolve the policy explicitly; see
+the mandate for remaining measurement, layout, cost, and delivery questions.
 
 - **Study** an area on the desktop and build named lists: completed co-living comps, teardown leads, listed lots to text, inbound leads.
 - **Work** those lists through the CRM (GoHighLevel is the current candidate): D2A texting rounds, owner outreach, PPC inbound.
@@ -16,7 +46,20 @@ and Second Ward first):
   - Parcels in active conversations show their CRM status.
 - **Navigate** to list stops, eventually inside the app.
 
-Every piece hangs on one stable parcel ID: the HCAD account, or the combined key for multi-parcel sites.
+Every piece hangs on stable parcel identity: retain each HCAD account and a
+canonical site/assembly key with its constituent accounts. A site may contain
+multiple tax accounts or legal lots; an account count is not a legal-lot count.
+
+Reuse the existing inside-610 parcel and co-living research. The Third/Second Ward
+context layer is current map coverage, not the boundary for new acquisitions work.
+The pipeline needs an audit against the clarified mandate before its scores can
+be treated as current buyer qualification.
+
+Acquisition now has two parallel lanes: geographic campaigns where target owners
+are concentrated, and targeted sourcing in Third Ward proper near UH/TSU. See
+[the Third Ward inventory](third-ward-opportunities-2026-10-26.md). The initial
+five-pocket score covered campaign leaders only; it cannot exclude smaller
+opportunity pockets or treat a crime-review flag as the buyer's rejection rule.
 
 ## The key dilemma
 **We want to start working the buy box aggressively now, but the field tool that makes that efficient sits on a foundation we may
@@ -30,8 +73,9 @@ It shows up in three places:
    Moving to an engine (MapLibre Native) means a Gradle build, so CI builds instead of on-device builds.
 2. **Build vs buy for lists, driving for dollars and the CRM link.** Commercial driving-for-dollars and list tools exist. A custom
    system wins on our HCAD data, buy-box scoring, co-living intelligence and the GHL link, but it costs time before it pays back.
-3. **Data plumbing.** Today the app is rebuilt from the PC's web export, without parcel IDs, with picks baked in at build time and
-   with owner names in the source files. Nothing can sync or link to the CRM until this changes.
+3. **Data plumbing.** Version 0.6 adds stable account/site IDs, a common screening
+   snapshot and durable list/visit sync. Supabase provisioning and the Joying
+   upgrade are the remaining steps to operate that workflow across devices.
 
 ## Options
 
@@ -103,7 +147,8 @@ Do what every option needs first, then upgrade the renderer:
 1. Option D (or another) and the engine: patch Canvas now and move to MapLibre later, or go straight to MapLibre?
 2. CRM: confirm GoHighLevel. One location or several? Custom "Property" object available? Which pipeline stages map to map colors?
 3. Outreach lanes at launch: D2A and PPC only, or owner outreach (D2S) too? That decides whether skip tracing and owner contacts come in.
-4. Backend: Supabase hosted, or something else?
+4. Backend: Supabase hosted selected October 26. Provision the project and install
+   the new Joying build to complete the live round trip.
 5. List vocabulary: starting lists and flags (co-living comps, teardown lead, vacant, FSBO sign, builder sign, pass + reason).
 6. In-motion rules: what can be tapped above walking speed, and should there be voice alerts for list parcels?
 7. Builds: are GitHub Actions and private releases acceptable for producing the APK?

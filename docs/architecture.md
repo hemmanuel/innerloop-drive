@@ -1,5 +1,23 @@
 # Architecture
 
+## Shared acquisition layer (0.6)
+
+Supabase stores stable parcel/site membership, versioned screening runs and a
+separate human activity log. Both the desktop and native app use the same
+transactional mutation/change-feed API. Lists and visits survive screening updates.
+The desktop uses IndexedDB and a service worker; Joying uses SQLite and an
+Android-Keystore-encrypted session. See [cross-device-workflow.md](cross-device-workflow.md).
+
+The native binary is now `ILP3`: address, canonical site ID, all constituent HCAD
+accounts, neighborhood and screening status accompany the original geometry and
+render fields. `tools/build_native_data.py` accepts either the old generated JS
+directory or the same `sites.jsonl.gz` snapshot uploaded to Supabase.
+
+Parcel taps use the current map transform and actual polygon paths. The workspace
+opens saved lists, records visits, changes status and resolves synchronization
+conflicts. Saved highlights are read from local state, not queried while drawing.
+The counts below describe the original 0.5 bundle.
+
 ## Native Drive runtime (0.4+)
 
 ```text
