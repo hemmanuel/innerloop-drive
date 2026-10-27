@@ -6,8 +6,9 @@ Version 0.6 adds Supabase migrations, a desktop acquisitions workspace, stable
 parcel/assembly IDs, native saved lists and offline visit sync. See
 [cross-device setup and validation](docs/cross-device-workflow.md).
 The completed full-Loop snapshot covers 181,840 accounts and 4,603 assemblies;
-5,407 site records fit the layout and transit screen. Hosted setup awaits
-Supabase CLI authentication, and the Joying upgrade remains to be installed.
+5,407 site records fit the layout and transit screen. The lossless index update
+reduces the tested database from 470 MB to 442 MB. Hosted setup awaits an available
+Supabase connection, and the Joying upgrade remains to be installed.
 
 ## Start here
 - [`docs/buyer-mandate.md`](docs/buyer-mandate.md): current buyer criteria, exact duplex model and sourcing context (updated 2026-10-26).

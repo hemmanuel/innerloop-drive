@@ -191,8 +191,9 @@ and credentials stay under ignored paths.
 
 ## Validation and deployment status
 
-The official Supabase CLI (2.122.0) applied all three migrations to a fresh
-PostgreSQL 17 database; a second push reported no changes. Supabase role/Auth
+The official Supabase CLI (2.122.0) applied the initial three migrations to a fresh
+PostgreSQL 17 database; a second push reported no changes. The subsequent index
+migration was also applied through the CLI. Supabase role/Auth
 stubs supply the local test identity layer.
 They exercise actual RLS, import activation, mutation receipts, conflicts and
 rescreening isolation. Two independent browser contexts run against those real
@@ -208,12 +209,46 @@ Catalog summary and first-page queries, including starting `psql`, took
 1.094/0.781 seconds; the Third Ward query took 0.703 seconds. The catalog exposes
 1,248 HCAD neighborhood groups and 14 broader campaign-area groups.
 
-Supabase Free currently allows a 500-MB database. This first run nearly fills
-that allowance, and retaining another full run requires more space. Pro starts
-at $25/month with an 8-GB project disk. A plan choice has been requested; no paid
-plan has been activated. [Pricing checked October 26](https://supabase.com/pricing).
+The storage pass below reduces the measured database to **441,519,251 bytes**.
+Supabase Free currently allows a 500-MB database, leaving approximately 58 MB
+before hosted-service overhead. Retaining another full run would exceed that
+allowance. Pro starts at $25/month with an 8-GB project disk. No paid plan has
+been activated. [Pricing checked October 26](https://supabase.com/pricing).
 
-Hosted provisioning requires Supabase access. Native device validation requires
+### Lossless storage reduction
+
+Migration `20261026000400_lean_catalog_indexes.sql` replaces a 30,777,344-byte
+neighborhood index with a 1,531,904-byte neighborhood lookup index and a
+401,408-byte partial index for fitting-site pagination. Neighborhood keys can
+now share PostgreSQL's deduplicated index entries; the separate fit index
+supports the default map view. Primary keys, uniqueness constraints, spatial
+index, geometries and all data fields remain intact.
+
+The whole-database measurement fell from 470,305,939 to 441,519,251 bytes (6.1%).
+All 186,443 records produced the same complete-content digest before and after.
+Nine API query comparisons covered fitting/all sites, Third Ward, viewport,
+HCAD neighborhood, account and address searches; all returned identical JSON.
+RLS/import/sync SQL assertions passed after the migration.
+
+Three alternative PostgreSQL compression configurations were tested in temporary
+full-data copies and discarded: they increased total storage slightly. No
+coordinate rounding, polygon simplification or record removal was applied.
+
+The next larger retention improvement is to keep older screening runs as exact
+compressed snapshots outside the live database. The existing complete snapshot
+is 34,653,608 bytes and the import tool can restore it. Cloud archive/restore and
+removal of old database runs are not implemented; do not delete old runs on the
+strength of this recommendation alone.
+
+The user subsequently authenticated in Chrome and connected Supabase to their
+ChatGPT account. This running session still reports the Supabase plugin as
+uninstalled and exposes no Supabase tools; the CLI has no login token either.
+Use the plugin connection when available. Check Plugins → Installed, then start
+a new chat with `@Supabase` after installation, following the
+[official plugin instructions](https://learn.chatgpt.com/docs/plugins).
+The CLI flow below remains an alternative, not a requirement for plugin access.
+
+Hosted provisioning requires available Supabase access. Native device validation requires
 installing the upgrade on Joying. Do not describe the local integration tests as
 a deployed Supabase project or a completed head-unit field test.
 

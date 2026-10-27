@@ -345,6 +345,26 @@ override the user's later clarification.
   [cross-device-workflow.md](cross-device-workflow.md). Generated inventory,
   databases, credentials and native assets remain outside Git.
 
+## 17. Storage reduction and plugin sign-in clarification (Oct 26)
+
+- The user asked for simple storage savings without losing data resolution.
+  Measured tables/columns/indexes rather than simplifying the parcel geometry.
+- Tested three lossless compression settings against full temporary copies.
+  Each preserved every row but slightly increased storage, so none was retained.
+- Replaced the 30.8-MB neighborhood index with a 1.5-MB neighborhood lookup and
+  0.4-MB partial index for fitting sites. Actual database size fell from 470.3 MB
+  to 441.5 MB, a 6.1% reduction. Added migration 20261026000400.
+- Complete-content checksums of all 186,443 records match. Nine API query
+  comparisons returned identical JSON; RLS/import/sync assertions still pass.
+  Every coordinate, field, record and identity is preserved.
+- The complete source snapshot is already losslessly compressed to 34.7 MB.
+  Archiving older screening runs outside the live database is a future retention
+  option; no old run was deleted and no cloud archive lifecycle was implemented.
+- The user clarified that authentication happened through Chrome and the
+  ChatGPT Supabase connection, not CLI login. This session's plugin check still
+  reports uninstalled and exposes no Supabase tools. Provided the official
+  Plugins/Installed and new-chat guidance; no credentials were requested in chat.
+
 ## Lessons
 1. Test in-vehicle software against real motion: road tests or recorded GPS traces, not desktop simulation.
 2. Browser/WebView runtimes are the wrong tool for a moving map on a head unit.
