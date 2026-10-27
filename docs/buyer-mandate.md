@@ -1,6 +1,6 @@
 # Buyer mandate and sourcing context
 
-Updated 2026-10-25 from the user's direct clarification in the project conversation.
+Updated 2026-10-26 from the user's direct clarifications in the project conversation.
 This is the current source of truth for acquisition criteria. It supersedes older
 buy-box language in the project history and planning documents. Later explicit
 user instructions take precedence. It records buyer requirements and separates
@@ -8,10 +8,16 @@ them from proposed workflows and matters still needing confirmation.
 
 ## Buyer and development model
 
-The user reports that the buyers are an out-of-state team deploying a mid-nine-figure
-fund, have recently completed successful Houston projects, and are actively
-acquiring qualifying sites through wholesalers. These are user-provided business
-facts, not independently verified fund information or a commitment on any one site.
+The buyers are an out-of-state team, active in Houston for less than a year, with
+an early-stage fund still raising capital. The earlier mid-nine-figure figure is
+their fundraising ambition. They are banking land faster than they can build and
+have completed several Houston projects. They use equity partners and separate
+project SPVs, so one LLC will not identify their entire portfolio. They fly in to
+inspect sites, blocks and transit before closing.
+
+Our role is a local acquisition partner seeking quick assignments or double
+closes. We are sourcing land for their underwriting, rather than investing in the
+fund's operating thesis.
 
 Their standard project is:
 
@@ -42,8 +48,10 @@ The buyers' underwriting treats projected cash flow equally across locations
 meeting their Loop/transit criteria. This is their stated underwriting policy,
 not an independently established claim that operating results are identical.
 Third, Second, Fifth Ward, and other inside-Loop neighborhoods are all eligible.
-Neighborhood names and campus proximity are descriptive research fields, not
-additional buyer eligibility gates or preference scores.
+Their soft preference is shorter commutes to the Medical Center and UH/TSU.
+Third, Second and Fifth Ward, Northside and Near Northside are practical sourcing
+areas; the west side is likely harder to acquire at the required basis. These
+preferences guide campaign sequencing while the entire Loop remains eligible.
 
 ## Earlier assumptions and unresolved details
 
@@ -61,9 +69,24 @@ additional buyer eligibility gates or preference scores.
   confirmed; straight-line versus walking-route distance is not. Record the
   measurement method, stop ID, service date, and source. A radius can support
   discovery but cannot settle final acceptance until the convention is agreed.
-- **Dimensions and delivery:** obtain accepted site plans and the buyer's frontage,
-  depth, access, parking, utility, demolition, occupancy, and delivery requirements.
-  Area alone does not establish that the prototype fits or can be permitted.
+- **Dimensions:** no 100-ft frontage requirement. Use the configuration and
+  building-envelope approach in [site-layout-screen.md](site-layout-screen.md).
+  The user observed ample spacing at Drew and tighter spacing at other projects.
+  The original calibration target was the Drew duplex structures. On October 26,
+  the user declined a city records request and explicitly authorized reasonable
+  duplex dimensions instead. Use two-story 40-by-45-ft and 30-by-60-ft working
+  footprints, each providing 1,800 gross sq ft per dwelling, and fit buildings,
+  clearance, eight parking spaces and pedestrian access within the two child
+  polygons. Do not require Drew-sized lots or reproduce its generous spacing.
+  A 50-ft-frontage by 200-ft-deep site is outside the primary side-by-side search.
+  Narrow sites stay in a separate adjoining-frontage/alternative-layout inventory;
+  area alone must never put them in the primary target map or campaign count.
+  Drew's actual structure dimensions remain unknown; the approximately
+  104.5-by-98-ft measurement describes its land. The working footprints are
+  supported by published co-living plans and are now implemented in the two-pocket
+  maps. Corners, through-street sites and major-road frontages retain a separate
+  access-layout queue.
+  The former 66-ft access threshold no longer grants a product-fit pass.
 - **Fee and cost treatment:** confirm whether the buyer's ceiling includes the
   assignment fee, closing costs, demolition, replatting, and infrastructure work.
   Until clarified, budget our assignment inside the buyer's acquisition price;
@@ -91,8 +114,9 @@ values and historical operator estimates are not verified sale prices.
 ## Recommended sourcing workflow
 
 Build on the existing inside-610 parcel, adjoining-owner, and co-living research
-documented in [project-history.md](project-history.md). Retrieve and audit the
-generated PC data before deciding what must be rebuilt. The older six-neighborhood
+documented in [project-history.md](project-history.md). The full study is now
+available at `C:\Houston_Infill\study`, including the 9-GB DuckDB database and
+21,722-site export. Audit its older filters before reusing its priorities. The older six-neighborhood
 distress inventory in the PC workspace is supplemental, not the master geography.
 
 1. **Build the eligible-site inventory:** combine individual parcels and genuinely
@@ -117,16 +141,48 @@ Research across the whole Loop from the outset. Choose outreach and driving batc
 using actual qualifying supply, price/spread, evidence quality, and travel efficiency.
 Operational batching must not become an undocumented neighborhood exclusion.
 
+Outreach should emphasize individual owners and families holding suitable sites.
+Prioritize qualifying expired/withdrawn listings for the agent channel. Evaluate
+affordable geographic campaigns where suitable sites and resident owners are
+concentrated. Do not lead seller/agent conversations with the redevelopment upside
+or the buyer's ceiling. Cold SMS, generic mail and a tiny 30-owner test are not the
+user's chosen owner-acquisition strategy.
+
+The October 26 quality refinement gives block-level rejection risk independent
+weight. Repeated serious violence, observed threatening activity, surrounding
+abandonment, dumping, a hostile transit walk and severe industrial/traffic
+intrusion can stop a buyer tour despite a low price and good dimensions. Score
+stacked access to UH, TSU, TMC and other anchors, and current acquisition-market
+conditions separately from resident-owner concentration. Use
+[quality-and-fit.md](quality-and-fit.md) for the implemented desktop screen and
+the field-observation rubric. A neighborhood name alone does not decide a site.
+
+The subsequent [Third Ward correction](third-ward-opportunities-2026-10-26.md)
+restores targeted acquisition near UH/TSU alongside concentrated campaigns
+elsewhere. Resident-owner density and ownership category select outreach methods;
+they cannot exclude locations or business-owned sites from buyer consideration.
+Drew triggers the proposed crime-review rule on pre-purchase incidents, so that
+rule routes inspection rather than predicting a failed visit or deleting a site.
+
+The user added a secondary listed-property assemblage strategy: identify stale
+on-market properties with workable asking-price economics, pursue adjoining
+owners, and secure the listed property once the neighbor terms work. Preserve
+this as a separate opportunistic lane; single-owner sites and existing same-owner
+assemblies remain primary. The [map and strategy notes](third-ward-maps-and-listed-assemblages.md)
+record the initial researched listings, adjacency rules and residual-neighbor
+budget calculation. Asking price, seller willingness and contract control are
+separate fields.
+
 ## Implementation state and next context to retain
 
-The native app exists; the synchronized acquisitions workflow is planned. The native
-binary currently omits stable account IDs, picks are baked in during builds, and
-native parcel cards/saved lists, desktop sync, and CRM integration are not implemented.
-Private generated data, imagery, contacts, and signing keys stay out of Git.
+The user selected Supabase and authorized the first cross-device workflow on
+October 26. The repository now contains migrations, stable account/assembly IDs,
+the full-Loop screening/import pipeline, a desktop workspace, native parcel cards,
+saved lists and durable offline visit sync. Local integration tests and hosted/
+Joying deployment are recorded separately in
+[cross-device-workflow.md](cross-device-workflow.md).
 
-The recommended software direction remains the hybrid option in
-[direction.md](direction.md): establish stable IDs and useful field/list workflows
-while working leads, then improve sync and rendering. The user has not selected
-the renderer migration, CRM, backend, or CI approach. This documentation update
-does not change application filters, regenerate data, approve outreach, or implement
-those proposed systems.
+The Canvas renderer remains in place. CRM, renderer migration and CI decisions
+remain open. The earlier [campaign ranking](campaign-pockets-2026-10-26.md) is a
+research snapshot; current site layouts come from versioned screening runs.
+Private generated data, imagery, contacts and signing keys stay out of Git.

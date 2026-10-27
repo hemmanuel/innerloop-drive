@@ -10,6 +10,8 @@ import math
 import os
 import struct
 import sys
+import gzip
+from site_identity import site_id, accounts as account_list
 
 R = 6378137.0
 ORIGIN_LON = -95.36
@@ -38,7 +40,7 @@ def text(out, value):
     out.write(raw)
 
 
-def feature(out, kind, priority, picked, area, address, geom):
+def feature(out, kind, priority, picked, area, address, geom, identity, accounts, neighborhood='', status='legacy'):
     rings = [ring for ring in geom if len(ring) >= 3]
     points = [xy(p) for ring in rings for p in ring]
     if not points:
@@ -48,6 +50,10 @@ def feature(out, kind, priority, picked, area, address, geom):
     out.write(struct.pack(">BBBBfffff", kind, priority, int(picked), 0,
                           float(area or 0), min(xs), min(ys), max(xs), max(ys)))
     text(out, address)
+    text(out, identity)
+    text(out, ' '.join(accounts))
+    text(out, neighborhood)
+    text(out, status)
     out.write(struct.pack(">I", len(rings)))
     for ring in rings:
         out.write(struct.pack(">I", len(ring)))
@@ -57,6 +63,8 @@ def feature(out, kind, priority, picked, area, address, geom):
 
 
 def main(source, destination):
+    if os.path.isfile(source) and source.endswith('.jsonl.gz'):
+        return snapshot(source,destination)
     parcels = load_js(os.path.join(source, "parcels.js"), "window.PARCELS = ")
     lots = load_js(os.path.join(source, "data.js"), "window.LOTDATA = ")
     picks_path = os.path.join(source, "picks.js")
@@ -72,20 +80,40 @@ def main(source, destination):
     count = len(parcels["geoms"]) + len(lots["geoms"])
     os.makedirs(os.path.dirname(destination), exist_ok=True)
     with open(destination, "wb") as out:
-        out.write(b"ILP2")
+        out.write(b"ILP3")
         out.write(struct.pack(">Idd", count, ORIGIN_LON, ORIGIN_LAT))
         written = 0
         for row, geom in zip(parcels["rows"], parcels["geoms"]):
-            written += feature(out, 0, 0, False, row[pc["sf"]], row[pc["addr"]], geom)
+            members=account_list(str(row[pc['acct']]))
+            written += feature(out, 0, 0, False, row[pc["sf"]], row[pc["addr"]], geom,
+                               site_id(members),members,str(row[pc['area']]))
         priority_code = {"X": 0, "C": 1, "B": 2, "A": 3}
         for row, geom in zip(lots["rows"], lots["geoms"]):
             accounts = str(row[lc["accts"]] or "")
+            members=account_list(accounts)
             written += feature(out, 1, priority_code.get(row[lc["priority"]], 0),
                                accounts in picks, row[lc["land_ar"]],
-                               row[lc["addresses"]], geom)
+                               row[lc["addresses"]], geom,site_id(members),members,str(row[lc['area']]))
         if written != count:
             raise SystemExit(f"Expected {count} features, wrote {written}")
     print(f"Wrote {count:,} parcels to {destination} ({os.path.getsize(destination)/1048576:.1f} MiB)")
+
+
+def snapshot(source,destination):
+    """The exact same snapshot is consumed by Supabase and offline Drive."""
+    os.makedirs(os.path.dirname(os.path.abspath(destination)),exist_ok=True)
+    count=0
+    with open(destination,'wb') as out:
+        out.write(b'ILP3');out.write(struct.pack('>Idd',0,ORIGIN_LON,ORIGIN_LAT))
+        with gzip.open(source,'rt',encoding='utf-8') as inp:
+            for line in inp:
+                row=json.loads(line);g=row['geometry']
+                if g is None:continue
+                rings=g['coordinates'] if g['type']=='Polygon' else [ring for poly in g['coordinates'] for ring in poly]
+                count+=feature(out,1 if row['area_sf']>=10000 else 0,3 if row['fits'] else 0,False,
+                  row['area_sf'],row['address'],rings,row['site_id'],row['accounts'],row['neighborhood'],row['status'])
+        out.seek(4);out.write(struct.pack('>I',count))
+    print(f'Wrote {count:,} mapped sites with stable IDs to {destination}')
 
 
 if __name__ == "__main__":

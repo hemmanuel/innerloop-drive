@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.fcim.innerloop"
-    android:versionCode="5" android:versionName="0.5.0-native">
+    android:versionCode="6" android:versionName="0.6.0-sync">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <application
+        android:allowBackup="false"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:label="Inner Loop Drive"
         android:icon="@drawable/ic_launcher"

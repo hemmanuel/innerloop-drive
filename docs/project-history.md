@@ -128,6 +128,223 @@ override the user's later clarification.
   native binary still omits account IDs, picks remain baked in, and sync/CRM/list
   workflows remain planned. Renderer, CRM, backend, and CI choices remain open.
 
+## 9. Full study and frontage correction (Oct 26, PC conversation)
+
+- The transferred study is available at `C:\Houston_Infill\study`: a 9-GB
+  DuckDB database, 21,722 candidate sites, the co-living research and web exports.
+  The database was opened read-only and the site export parsed in full.
+- The buyer is still raising its fund and banking land faster than it builds.
+  It uses SPVs/equity partners, visits sites before closing, and prefers shorter
+  Medical Center and UH/TSU commutes while accepting the whole Loop.
+- The user challenged the arbitrary 100-ft frontage shortcut after visiting Drew.
+  Official Houston access rules distinguish 44-ft and 33-ft child lots. Tight
+  building gaps are possible through rated-wall, opening and maintenance design.
+- Added [site-layout-screen.md](site-layout-screen.md), a configuration router and
+  supplied-envelope calculation. Narrow and unmeasured sites remain in inventory.
+- Measured situs-street frontage for 20,110 of 21,722 sites. Drew is approximately
+  104.5 ft along the street; its previous 97.7-ft field is the short bounding side.
+  Corrected the web map's labels accordingly. Android data remains unchanged.
+- Source co-living examples include smaller duplexes and ten-bedroom single-family
+  buildings; they do not all represent the buyer's five-bedroom-per-unit duplex.
+- Concentrated owner campaigns need both suitable-site density and owner
+  residence. Keep individuals, estates, trusts and business ownership separate.
+  Same-owner assembly identity and shared-edge contiguity still need a tighter
+  audit than the transferred pipeline's one-foot proximity grouping.
+- Added [campaign-pockets-2026-10-26.md](campaign-pockets-2026-10-26.md): ranked
+  410 half-mile squares, resolved local owner mailing addresses using the full
+  county account join, and intersected active city lot/building-line controls.
+  Oak Acres, Houston Harbor/Liberty Heights and Forest Hill lead the field sequence.
+- Downloaded METRO's October 8, 2026 GTFS release and resolved active bus/rail
+  boarding stops for October 26-November 1. Of 21,722 sites, 21,627 pass the
+  half-mile straight-line screen; transit contributes little geographic sorting.
+
+## 10. Quality, buyer fit and block rejection risk (Oct 26)
+
+- The user emphasized that blocks likely to repel the visiting buyer or tenants
+  must be quantified directly, alongside stacked commute benefits and acquisition
+  pricing/inventory conditions.
+- Downloaded HPD 2025/2026 street-level files. The 2026 file ends in June; used a
+  common July 2025-June 2026 window and deduplicated serious-violence incident IDs.
+  Enriched all 21,722 sites with 660/1,320-ft exposure counts and repeat-review flags.
+- Added physical-context measurements, scheduled GTFS commute comparisons for
+  nine pockets, market updates and a transparent desktop score for the original
+  five-pocket shortlist. Current 311 requests failed with a server error; no
+  zero-complaint assumption was substituted.
+- The quality sequence is Oak Acres (79), Forest Hill (71), Harbor central/south
+  (67 each), Harbor north (60). Grand Park's comparison square has repeat-review
+  flags on 43 of 50 sites, versus 7/119 in Oak Acres and 0/45 in Forest Hill.
+- Added [quality-and-fit.md](quality-and-fit.md) and a 444-site private field queue.
+  Field observation can veto a tour regardless of the numeric desktop score.
+  The native app bundle and outreach systems remain unchanged.
+
+## 11. Third Ward omission and selection-bias correction (Oct 26)
+
+- The user challenged Third Ward proper's absence despite observed qualifying
+  sites and the buyer's demonstrated UH/TSU project. The initial five-pocket
+  shortlist optimized resident-owner campaign reach, then received quality
+  scores without comparing the omitted Third Ward pockets.
+- Recovered 312 candidate sites in eight UH/TSU-area squares: 188 singles and
+  124 same-owner assemblies, with 648 distinct account IDs and no account overlap.
+  There are 225 geometry-review sites across all ownership categories; 88 are
+  individual-, estate- or trust-owned. All 312 remain in the private site queue.
+- Rosedale/Wentworth/Arbor has 20 individual geometry-review sites, 14 resident
+  owners and no repeat-violence flags. Its modeled UH/TSU/TMC access is 12/4/25
+  minutes, compared with Oak Acres' 39/42/55 minutes.
+- Extended GTFS analysis to eight additional cells and allowed direct walking
+  to nearby anchors. Saved the scope and method with the results.
+- Independently counted Drew's serious incidents in the twelve months before
+  the reported April 24, 2026 purchase: seven within 660 ft across six months,
+  including three in public settings. The purchase demonstrates that our crime
+  flag is not an automatic buyer-rejection rule.
+- Added [third-ward-opportunities-2026-10-26.md](third-ward-opportunities-2026-10-26.md).
+  Third Ward targeted sourcing joins the first acquisition wave. Keep campaign
+  reach, buyer/location fit and seller economics separate. Original composite
+  scores remain historical; they were not recalibrated into acceptance probabilities.
+- Created private `third_ward_review.json` and `third_ward_site_queue.json`.
+  No outreach, app rebuild or publication was performed.
+
+## 12. Parcel maps and secondary listed-property assemblages (Oct 26)
+
+- Built interactive parcel maps with actual outlines, internal assembly account
+  boundaries, street labels, stops and property-level quality/fit evidence.
+- Plotting exposed grid spillovers across I-45. The final primary map displays
+  30 Rosedale/Arbor sites and 45 Drew/Tuam sites, including 22 assembly candidates.
+  Twenty-one have matching current owner names; 2702/2706 Scott is separately
+  flagged for owner-match review. Fifteen surrounding records stay in the source inventory.
+- Corrected the road-class match for highway distances: include `HIGHWAY` and
+  `FREEWAY`. Updated 7,932 site distances and synchronized the private queues.
+  Historical composite scores are labeled accordingly.
+- Recorded the user's secondary strategy: work the adjoining owner of a suitably
+  priced stale listing, then secure the listed property and deliver the assembly.
+  The main single-owner sourcing strategy remains primary.
+- Built a second surface with six researched listings and 30 one/two-neighbor
+  combinations. It deducts other known listing asks and an editable profit/cost
+  reserve, distinguishes reset DOM from prior marketing, and marks pending anchors.
+- Added [third-ward-maps-and-listed-assemblages.md](third-ward-maps-and-listed-assemblages.md).
+  The browser checks cover parcel selection, correct pocket counts, budget
+  changes, second-listed-property costs, unavailable anchors and narrow layouts.
+
+## 13. Separate deep/narrow inventory from primary targets (Oct 26)
+
+- The user identified 50-by-200-ft shapes in the map. Its default view had shown
+  all 75 source sites, including 19 already outside the older geometry screen.
+- Audited continuous street faces and actual equal-area polygon cuts. Four thin
+  corner/through-street strips and one curved/tapered-frontage site also leave
+  the primary pool. The new default is 24 Rosedale/Arbor plus 27 Drew/Tuam sites.
+- Added frontage × depth, each child's street span, a bold street-face overlay
+  and dashed equal-area cut. Other layouts are selectable separately; gray
+  background parcels are explicitly identified as context.
+- Preserved narrower side-by-side candidates, including approximately
+  70-by-192-ft Rosedale sites. No 100-ft frontage requirement was reinstated.
+- Applied the same audit to listed-property assemblages. Rear-neighbor pairs
+  that only produce 50-by-200-ft sites no longer show a primary-project exit budget.
+- Updated pocket comparisons to use the audited geometry pool. The complete
+  source export and historical campaign rankings retain their earlier screen;
+  the corrected counts are implemented in the two-pocket map payload.
+- Geometry tests cover deep/narrow, square, compact-frontage, rotated, skewed,
+  tapered, disconnected-frontage and shallow-strip cases. Browser checks cover
+  filtered counts, retained inventory, dimensions, budgets and responsive layouts.
+
+## 14. Parcel split was incorrectly promoted to product fit (Oct 26)
+
+- The user challenged 3531 Wentworth (about 74 by 154 ft) and remaining frontages
+  in the 60s. Code inspection confirmed the map admits a site at 66 ft combined
+  and 33 ft per child without calling the existing building-envelope fit test.
+- Those widths came from the access research. They do not supply the minimum
+  footprint for a two-story duplex with two five-bed/five-bath units.
+- Wentworth's equal-area split has street spans of about 36.6/37.5 ft, leaving
+  30.6/31.5 ft at the street after the earlier 3-ft-per-side assumption. The
+  actual product was not tested against those widths or the child polygons.
+- Withdrew the statement that approximately 70-ft-frontage sites were viable.
+  The 51-site count describes parcel geometry candidates only. Documentation
+  now distinguishes that from product fit. No replacement minimum was invented.
+- The next product-fit implementation needs an explicit building envelope,
+  unit arrangement and parking/access layout. The current map remains the
+  geometry candidate view until that separate test is implemented.
+
+- The user clarified that Drew's **structures**, not its lot sizes or generous
+  gaps, are the calibration target. Measure and fit those footprints on the
+  candidate parcels. The 66/33 threshold came from a narrow-lot access provision,
+  not Drew measurements. The recorded approximately 104.5-by-98-ft dimensions
+  describe Drew's land; no structure-based fit model had been completed.
+
+## 15. Reasonable duplex footprints and map rescreen (Oct 26)
+
+- Public permits identify Drew's two-story no-garage duplexes but omit dimensions.
+  The user declined submitting a records request and authorized reasonable
+  duplex dimensions. The draft was cancelled without submission.
+- Reviewed SIH's dimensioned two-story co-living plans: a 30-ft-wide seven-bedroom
+  duplex unit at 1,866 heated sq ft, and 20-ft-wide five-bedroom units at 1,160
+  heated sq ft. Selected 40-by-45 and adapted 30-by-60 working duplex footprints,
+  each giving 1,800 gross sq ft per dwelling over two floors.
+- Implemented rigid building rectangles in equal-area child polygons, 3/5-ft side
+  options, eight 9-by-19 parking spaces in dwelling-assigned tandem pairs, 3-ft
+  pedestrian paths, entry/rear reservations and 12/18-ft driveway scenarios.
+  Buildings are never sheared to make a skewed parcel pass.
+- Removed road-facing false positives that crossed intervening property. Corners
+  and through-street sites have a separate access-layout group. Major-road
+  frontages also move there for shared/flag/turnaround access; a front-only fit
+  cannot bypass their street-side building-line and side-access work.
+- Rescreened the 75 mapped sites: 5 Rosedale/Arbor and 8 Drew/Tuam front-access
+  fits, 49 street-access layout cases and 13 other layout/geometry/owner cases.
+  Drew fits the broad working model. Wentworth fails due to its actual skew,
+  while a rectangular 74-ft-frontage site fits the narrow model.
+- Applied the model to 30 secondary assemblies: six front-access fits, including
+  three around active 3212 McIlhenny; three others have an unavailable anchor.
+  Updated both maps with actual-scale buildings, parking and access overlays.
+- Geometry tests cover widths, skew, rotation, boundary pinches, front jogs,
+  parking/path separation and retained area gates. Browser checks cover map
+  groups, drawn objects, budget gating, selected-site zoom and mobile/dark layouts.
+- Updated the mandate, direction and research docs. The full 21,722-site export
+  and Android bundle were not rerun or rebuilt by this two-pocket update.
+
+## 16. Full-Loop screening and the first shared workflow (Oct 26)
+
+- The user selected Supabase, asked for schema/migrations/code in innerloop-drive,
+  and required the full Loop screening to feed the same system. The first workflow
+  is desktop shortlist → Joying visit/status/note → desktop, with offline writes.
+- Added workspace-scoped tables and RLS, immutable screening runs, canonical
+  account/assembly IDs, append-only observations, list tombstones, durable change
+  events, idempotent mutation receipts and explicit conflicting-edit resolution.
+  Imports activate only after complete counts and preserve all acquisition work.
+- Built the authenticated desktop map with neighborhood/campaign-area filters,
+  actual parcel and layout shapes, named lists, visit notes and an IndexedDB
+  outbox. The app shell and saved sites survive an offline reload.
+- Added native tap cards, list highlighting, saved lists, block impressions and
+  background sync while preserving Canvas/GPS behavior. SQLite stores records
+  separately; Android Keystore encrypts the session. The original signing key
+  is required for upgrades. No replacement signing identity was created.
+- Downloaded and cached 211,139 county parcel polygons. The inside-Loop study
+  contains 181,840 accounts, of which 181,596 match county polygons. Added 4,603
+  strict same-owner contiguous groups, including small-plus-large combinations.
+- Stopped the first draft when a condominium account at 1701 Hermann inherited
+  its entire building parcel's area. The corrected model uses recorded land area,
+  flags common-land interests and identical shared polygons, and reevaluates
+  those conditions before reusing any verified placement cache. V1 was never
+  imported.
+- Completed `loop-duplex-v2`: 186,443 site records; 5,407 layout-and-transit fits
+  (4,513 singles, 894 assemblies). Twenty additional layouts exceed the transit
+  radius. Third Ward contributes 368 fitting site records. Campaign scores are
+  still the earlier research snapshot.
+- Validated every ID/member relationship and 162,810 layout objects with no
+  errors. Drew passes `wide_5`; Wentworth remains `no_fit`. Generated the matching
+  35,616,763-byte native bundle containing 186,199 mapped sites.
+- The official Supabase CLI applied all migrations to fresh PostgreSQL 17 and
+  reported no changes on a repeat push. RLS/import/sync SQL assertions, 12 Python
+  tests and a two-browser offline/reconnection/conflict test passed. Android Java
+  compiles and desugars for API 23 using stable R8 9.5.28.
+- Imported and activated the complete snapshot locally through the production
+  SQL functions in 93 seconds. The database uses about 470 MB, close to the
+  500-MB Free allowance. Requested the user's choice of Free initial setup or
+  Pro at up to $25/month; no paid plan has been activated.
+- The user prefers authenticating through their own browser. Installed the
+  official CLI locally and provided its `login` command for their PowerShell
+  window. Supabase provisioning awaits that login. No hosted project, app Auth
+  user, public deployment or Joying upgrade has been created by this work yet.
+- Implementation and operational steps are in
+  [cross-device-workflow.md](cross-device-workflow.md). Generated inventory,
+  databases, credentials and native assets remain outside Git.
+
 ## Lessons
 1. Test in-vehicle software against real motion: road tests or recorded GPS traces, not desktop simulation.
 2. Browser/WebView runtimes are the wrong tool for a moving map on a head unit.

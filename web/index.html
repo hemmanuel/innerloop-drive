@@ -109,7 +109,7 @@ body.night .leaflet-container{background:#1b1f27}
       <fieldset><legend>Limits</legend>
         <div class="row"><span style="width:118px">Max land $/sq ft</span><input type="range" id="psf" min="5" max="200" step="5" value="200"><output id="psf-o"></output></div>
         <div class="row"><span style="width:118px">Max miles to campus</span><input type="range" id="mi" min="0.5" max="6" step="0.25" value="6"><output id="mi-o"></output></div>
-        <div class="row"><span style="width:118px">Min width (ft)</span><input type="range" id="w" min="0" max="150" step="5" value="0"><output id="w-o"></output></div>
+        <div class="row"><span style="width:118px" title="Short side of the parcel's bounding rectangle. Street frontage is measured separately.">Min short side (ft)</span><input type="range" id="w" min="0" max="150" step="5" value="0"><output id="w-o"></output></div>
         <div class="row"><span style="width:118px">Min lot sq ft</span><input type="range" id="sf" min="10000" max="40000" step="500" value="10000"><output id="sf-o"></output></div>
       </fieldset>
       <fieldset><legend>Campus</legend><div id="f-campus"></div></fieldset>
@@ -412,7 +412,7 @@ function list(){
   const el=$('list'); const rows=shown.slice(0,LIMIT);
   el.innerHTML = rows.map(s=>`<div class="item${selected===s?' on':''}" data-i="${s.i}">
     <div class="t"><span class="pill" style="background:${css('--'+s.priority)}">${s.priority}</span>${isPick(s)?'★ ':''}#${s.rank??'–'} · ${esc(short(s.addresses))}</div>
-    <div class="m">${num(s.land_ar)} sq ft · ~${num(s.lot_width_ft)} ft wide · ${esc(s.improvement)} · ${s.land_psf!=null?'$'+s.land_psf+'/sf':''} · ${esc(s.nearest_college)} ${s.college_mi} mi</div>
+    <div class="m">${num(s.land_ar)} sq ft · ~${num(s.lot_width_ft)} ft short side · ${esc(s.improvement)} · ${s.land_psf!=null?'$'+s.land_psf+'/sf':''} · ${esc(s.nearest_college)} ${s.college_mi} mi</div>
     <div class="m">${esc(s.area)} · ${esc(FORM_LABEL(s.lot_form||''))}${s.arrangement?' · '+esc(s.arrangement):''}</div></div>`).join('')
     + (shown.length>LIMIT?`<div class="item m">Showing the first ${LIMIT} by rank. Narrow the filters or use CSV for all ${shown.length.toLocaleString()}.</div>`:'');
 }
@@ -433,7 +433,7 @@ function select(s, fly){
     ['Addresses', esc(s.addresses)], ['Area', esc(s.area)], ['Zip', esc(s.zip)],
     ['Lot form', esc(FORM_LABEL(s.lot_form||''))+(s.arrangement?` · ${esc(s.arrangement)}`:'')],
     ['Site', `${esc(s.site_type)} · ${s.n_parcels} parcel(s)`], ['Lot sq ft', num(s.land_ar)+(s.n_parcels>1?` (${esc(s.parcel_sizes)})`:'')],
-    ['Approx. width × depth', `${num(s.lot_width_ft)} × ${num(s.lot_depth_ft)} ft`+(s.n_parcels>1?` · parcel widths ${esc(s.parcel_widths)}`:'')],
+    ['Shape: short × long side', `${num(s.lot_width_ft)} × ${num(s.lot_depth_ft)} ft`+(s.n_parcels>1?` · parcel short sides ${esc(s.parcel_widths)}`:'')],
     ['Condition', esc(s.improvement)+(s.yr_built_min?` · built ${s.yr_built_min}${s.yr_built_max&&s.yr_built_max!==s.yr_built_min?'–'+s.yr_built_max:''}`:'')+(s.heat?` · ${num(s.heat)} sf`:'')],
     ['Class', esc(s.state_classes)],
     ['HCAD land', `${money(s.land_val)} · $${s.land_psf??'–'}/sf`], ['HCAD building / total', `${money(s.bld_val)} / ${money(s.mkt)}`],

@@ -1,6 +1,8 @@
 # Parcel sync and navigation plan
 
-Status: planning only; not yet implemented.
+Status: the first list/visit workflow is implemented in source as of October 26,
+2026. See [cross-device-workflow.md](cross-device-workflow.md) for the actual
+schema, local tests and hosted/device deployment status. Routing remains planned.
 
 Acquisition criteria and the two-duplex development model are maintained in
 [`buyer-mandate.md`](buyer-mandate.md). Sync must support both individual parcels
@@ -25,7 +27,7 @@ Desktop viewer  <---->  Supabase/Postgres  <---->  Joying app
 GitHub remains the source-code and release repository. It should not be used as
 the runtime synchronization database.
 
-Supabase is the recommended initial backend because it provides Postgres,
+Supabase is the selected backend because it provides Postgres,
 authentication, row-level security, REST/realtime APIs, and a practical path to
 the separate desktop viewer. The APK must never contain a Supabase service-role
 key. It should authenticate as a normal user or dedicated device identity and be
@@ -43,10 +45,12 @@ Keep tax accounts, verified legal lots, and the proposed two-parcel layout
 separate. Existing adjoining lots may support the project without the same
 replat work as a single legal lot, subject to survey and title verification.
 
-The native `parcels.bin` format currently omits account IDs. Before implementing
-selection, add the stable ID for both candidate and context parcels.
+The native `parcels.bin` format is now ILP3, carrying account IDs, canonical site
+IDs, assembly membership, neighborhood and screening status. Both candidate and
+context parcels support selection and saving.
 
-Suggested initial synchronized record:
+The original single-record sketch below is superseded by separate saved lists,
+list items, append-only observations and screening snapshots in the migrations:
 
 ```text
 parcel_id       stable HCAD/combined account key; unique
@@ -176,9 +180,13 @@ connectivity unless an on-device routing graph is added later.
 
 - Does “add a parcel” only mean save an existing bundled parcel, or must users
   draw/import entirely new geometry?
-- Which parcel statuses, tags, and editable fields are required initially?
-- One shared user account or separate desktop/device identities?
-- Supabase-hosted backend or a custom/self-hosted alternative?
+- The first statuses are saved, visited, pursue and pass; visits contain notes
+  and an optional 1–5 block impression. Expand tags/fields when acquisition work
+  establishes a need.
+- The first deployment uses the same app account on desktop and Joying.
+  Separate device/team identities are a later access-management feature.
+- Supabase hosted was selected October 26; provisioning remains an account setup
+  step. Source implementation is documented in `cross-device-workflow.md`.
 - Which routing provider, maximum route size, and optimization objective?
 - Should routes optimize pure drive time, preserve a partial order, or support
   user-defined priority and time windows?

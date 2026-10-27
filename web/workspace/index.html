@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163b36"><title>Inner Loop · Acquisitions</title>
+<link rel="stylesheet" href="lib/leaflet.css"><link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.json">
+</head><body>
+<header><div><strong>INNER LOOP</strong><span>Acquisitions workspace</span></div><nav><span id="sync-state">Not connected</span><button id="sync">Sync</button><button id="connection">Connection</button></nav></header>
+<main><aside><section id="filters"><label>Area<select id="area"><option value="">Entire Loop</option></select></label>
+<label>HCAD neighborhood<select id="neighborhood"><option value="">All neighborhoods</option></select></label>
+<label>Address or HCAD account<input id="search" placeholder="Search the whole Loop"></label>
+<label class="check"><input type="checkbox" id="fit" checked> Complete layout + transit fit</label>
+<label class="check"><input type="checkbox" id="viewport"> Search this map view</label>
+<div class="tabs"><button id="browse" class="active">Screened sites</button><button id="saved">Saved lists</button></div>
+<div id="list-controls" hidden><select id="lists" aria-label="Saved list"></select><button id="new-list">New list</button></div>
+<p id="catalog">Connect to load your screening inventory.</p></section><div id="results"></div><button id="more" hidden>Load more</button></aside>
+<section class="canvas"><div id="map"></div><div id="map-caption">Parcel shapes · layout scenarios · field observations</div><article id="detail" hidden></article></section></main>
+<dialog id="login"><form id="login-form"><h2>Connect your workspace</h2><p>Use your Inner Loop app login on both desktop and Joying.</p>
+<label>Project URL<input name="url" type="url" placeholder="https://project.supabase.co" required></label>
+<label>Publishable key<input name="key" autocomplete="off" required></label>
+<label>Email<input name="email" type="email" autocomplete="username" required></label>
+<label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+<p id="login-error" role="alert"></p><div class="actions"><button type="button" id="close-login">Cancel</button><button type="submit">Sign in</button></div></form></dialog>
+<dialog id="visit"><form id="visit-form"><h2>Record a visit</h2><p id="visit-address"></p>
+<label>Block impression<select name="rating"><option value="">Not rated</option><option value="5">5 · Strong tour candidate</option><option value="4">4 · Good</option><option value="3">3 · Mixed</option><option value="2">2 · Significant concerns</option><option value="1">1 · Would repel the buyer</option></select></label>
+<label>What did you see?<textarea name="note" rows="5" required maxlength="12000" placeholder="Block condition, neighboring uses, transit walk, access, signs, follow-up…"></textarea></label>
+<div class="actions"><button type="button" id="cancel-visit">Cancel</button><button type="submit">Save visit</button></div></form></dialog>
+<dialog id="conflicts"><h2>Review sync changes</h2><div id="conflict-rows"></div><button id="close-conflicts">Close</button></dialog>
+<div id="message" role="status"></div>
+<script src="lib/leaflet.js"></script><script type="module" src="app.mjs"></script>
+</body></html>
